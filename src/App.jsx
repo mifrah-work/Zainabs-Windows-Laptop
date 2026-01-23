@@ -152,7 +152,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 50, y: 550 })
         const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
           baseOptions: {
             modelAssetPath:
-              'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/models/face_landmarker.task',
+'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm/face_landmarker.task',
+
           },
           runningMode: 'VIDEO',
           numFaces: 1,
