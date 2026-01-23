@@ -16,6 +16,9 @@ import fullBinImg from './assets/Recycle_bin_full.webp'
 import trashSound from './assets/trash.mp3'
 import heartFilterImg from './assets/heart_filter.png'
 import profilePicture from './assets/profile_picture.png'
+import windowsStartImg from './assets/windows_start.png'
+import letterboxdLogo from './assets/letterboxd_logo.png'
+import purblePalaceLogo from './assets/purble_palace.png'
 
 // Playlist data
 const PLAYLIST = [
@@ -223,7 +226,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 50, y: 550 })
     }
   }, [])
 
-  // Load overlay images
+  // Load overlay images and preload assets
   useEffect(() => {
     // Always load michonne_kiss.png
     const kissImg_ = new Image()
@@ -244,6 +247,16 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 50, y: 550 })
     heartImg.onerror = () => {
       console.error('Failed to load heart filter image')
     }
+
+    // Preload windows_start.png and bg.png for faster loading
+    const preloadImage = (src) => {
+      const img = new Image()
+      img.src = src
+    }
+    preloadImage(windowsStartImg)
+    preloadImage(bgImage)
+    preloadImage(letterboxdLogo)
+    preloadImage(purblePalaceLogo)
   }, [])
 
   // Start webcam
@@ -960,7 +973,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 50, y: 550 })
               }}
             >
               <img 
-                src="/assets/purble_palace.png" 
+                src={purblePalaceLogo}
                 alt="Purple Palace"
                 style={{
                   width: '48px',
@@ -1045,7 +1058,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 50, y: 550 })
               }}
             >
               <img 
-                src="/assets/letterboxd_logo.png" 
+                src={letterboxdLogo}
                 alt="Letterboxd"
                 style={{
                   width: '56px',

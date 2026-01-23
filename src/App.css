@@ -9,7 +9,7 @@
 
 body {
   background: rgb(0, 0, 0);
-  background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(92, 38, 134, 1) 35%, rgba(255, 22, 144, 1) 100%);
+  background: linear-gradient(0deg, rgba(0, 20, 60, 1) 0%, rgba(10, 40, 100, 1) 50%, rgba(20, 60, 140, 1) 100%);
   font-family: 'MS Sans Serif', Arial, sans-serif;
   height: 100%;
   width: 100%;
