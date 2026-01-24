@@ -3337,7 +3337,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 50, y: 480 })
                           borderColor: hasPrev ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
                           position: 'absolute',
                           left: '5px',
-                          opacity: hasPrev ? 1 : 0.5
+                          opacity: hasPrev ? 1 : 0.5,
+                          outline: 'none'
                         }}
                       >
                         ◄
@@ -3378,7 +3379,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 50, y: 480 })
                           borderColor: hasNext ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
                           position: 'absolute',
                           right: '5px',
-                          opacity: hasNext ? 1 : 0.5
+                          opacity: hasNext ? 1 : 0.5,
+                          outline: 'none'
                         }}
                       >
                         ►
