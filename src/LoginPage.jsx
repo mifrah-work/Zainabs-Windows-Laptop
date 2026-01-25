@@ -94,13 +94,33 @@ function LoginPage({ onLogin, onLogout }) {
         alignItems: 'center',
         justifyContent: 'center',
         userSelect: 'none',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        backgroundColor: '#0000aa'
       }}
       onClick={handlePageClick}
     >
       <audio ref={windowsAudioRef} src={windowsOpeningSound} />
       <audio ref={clickAudioRef} src={clickSound} />
       <audio ref={keyboardAudioRef} src={keyboardSound} />
+
+      {/* Loading Message */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          color: '#ffff00',
+          fontSize: '24px',
+          fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          pointerEvents: 'none',
+          zIndex: 9999
+        }}
+      >
+        Wait for bg image to load before clicking anything!
+      </div>
 
       {/* Windows Version - Bottom Left */}
       <div
