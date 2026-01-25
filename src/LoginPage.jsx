@@ -74,7 +74,7 @@ function LoginPage({ onLogin, onLogout }) {
         setIsLoading(false)
         onLogin()
       } else {
-        setError('The password is incorrect. Try again.')
+        setError('The password is incorrect. Frankly, quite disappointed in you edward')
         setPassword('')
         setIsLoading(false)
       }
