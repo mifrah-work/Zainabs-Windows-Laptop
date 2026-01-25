@@ -261,48 +261,48 @@ function LoginPage({ onLogin, onLogout }) {
           )}
         </form>
 
-        {/* Password Hint */}
-        <button
-          onClick={() => {
-            playClickSound()
-            setShowHint(!showHint)
-          }}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'rgba(255, 255, 255, 0.6)',
-            fontSize: '13px',
-            fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-            cursor: 'pointer',
-            textDecoration: 'none',
-            marginTop: '8px',
-            transition: 'color 0.2s',
-            outline: 'none'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.color = 'rgba(255, 255, 255, 0.9)'
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.color = 'rgba(255, 255, 255, 0.6)'
-          }}
-        >
-          Password hint
-        </button>
-
-        {/* Hint Message */}
-        {showHint && (
-          <div
+        {/* Password Hint Section */}
+        <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: '8px' }}>
+          <button
+            onClick={() => {
+              playClickSound()
+              setShowHint(!showHint)
+            }}
             style={{
-              color: 'rgba(255, 255, 255, 0.8)',
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255, 255, 255, 0.6)',
               fontSize: '13px',
               fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-              textAlign: 'center',
-              marginTop: '8px'
+              cursor: 'pointer',
+              textDecoration: 'none',
+              transition: 'color 0.2s',
+              outline: 'none'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.color = 'rgba(255, 255, 255, 0.9)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.color = 'rgba(255, 255, 255, 0.6)'
             }}
           >
-            You sure you don't know?
-          </div>
-        )}
+            Password hint
+          </button>
+
+          {/* Hint Message */}
+          {showHint && (
+            <div
+              style={{
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: '13px',
+                fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+                textAlign: 'center'
+              }}
+            >
+              You sure you don't know?
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bottom Left Profile & Logout */}
