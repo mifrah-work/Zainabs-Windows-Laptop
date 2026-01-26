@@ -541,6 +541,16 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       console.error('Failed to load bow filter image')
     }
 
+    // Preload Vijay image
+    const vijayImage = new Image()
+    vijayImage.src = new URL('./assets/vijay.png', import.meta.url).href
+    vijayImage.onload = () => {
+      overlayImageRef.current = vijayImage
+    }
+    vijayImage.onerror = () => {
+      console.error('Failed to load vijay.png')
+    }
+
     // Preload all borders
     const borderMap = {
       bow: new URL('./assets/borders/bow.png', import.meta.url).href,
