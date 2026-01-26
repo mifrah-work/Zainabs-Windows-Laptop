@@ -179,15 +179,15 @@ function App() {
   const [draggedImageId, setDraggedImageId] = useState(null)
   const [dragImageSource, setDragImageSource] = useState(null)
   const [dragImagePos, setDragImagePos] = useState({ x: 0, y: 0 })
-  const [vijayOverlayPos, setVijayOverlayPos] = useState({ x: 350, y: 1 })
-const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 500 })
-  const [musicPlayerPos, setMusicPlayerPos] = useState({ x: 1185, y: 580 })
-  const [controlsWindowPos, setControlsWindowPos] = useState({ x: 855, y: 380 })
-  const [trashPos, setTrashPos] = useState({ x: 250, y: 680 })
-  const [videoPos, setVideoPos] = useState({ x: 1180, y: 10 })
+  const [vijayOverlayPos, setVijayOverlayPos] = useState({ x: 350, y: -4 })
+const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
+  const [musicPlayerPos, setMusicPlayerPos] = useState({ x: 1192, y: 575 })
+  const [controlsWindowPos, setControlsWindowPos] = useState({ x: 855, y: 355 })
+  const [trashPos, setTrashPos] = useState({ x: 250, y: 650 })
+  const [videoPos, setVideoPos] = useState({ x: 1180, y: 5 })
   const [captureNotificationPos, setCaptureNotificationPos] = useState({ x: 400, y: 200 })
   const [showGallery, setShowGallery] = useState(false)
-  const [galleryPos, setGalleryPos] = useState({ x: 900, y: 500 })
+  const [galleryPos, setGalleryPos] = useState({ x: 900, y: 475 })
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const saved = localStorage.getItem('isLoggedIn')
@@ -2567,7 +2567,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 500 })
                   </div>
                   <div style={{ width: '100%' }}>• Try either winking, sticking your tongue out or opening your eyes wide</div>
                   <div style={{ width: '100%' }}>• To go back to default "thinking" monkey, just blink</div>
-                  <div style={{ width: '100%', textAlign: 'center', fontStyle: 'italic', marginTop: '5px' }}>The monkeys get a bit lazy - sometimes expressions aren't detected properly ☆</div>
+                  <div style={{ width: '100%', textAlign: 'center', fontStyle: 'italic', marginTop: '5px' }}>The monkeys get a bit lazy - sometimes expressions aren't detected properly, just keep trying ☆</div>
                   
                   {/* Bow decoration */}
                   <img 
@@ -3123,7 +3123,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 500 })
           display: 'flex',
           flexDirection: 'column',
           zIndex: 1000,
-          transform: 'scale(0.75)',
+          transform: 'scale(0.7)',
           transformOrigin: 'top left'
         }}>
           {/* Title bar */}
@@ -3159,7 +3159,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 500 })
 
           {/* Player content */}
           <div style={{
-            padding: '15px',
+            padding: '10px',
             textAlign: 'center'
           }}>
             {/* Album cover display */}
