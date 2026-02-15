@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSpring, animated } from '@react-spring/web'
 import html2canvas from 'html2canvas'
+import JSZip from 'jszip'
 import LoginPage from './LoginPage'
 
 // App title constant
@@ -102,13 +103,8 @@ function App() {
   const overlayImageRef = useRef(null)
   const heartFilterRef = useRef(null)
   const bowFilterRef = useRef(null)
-  const monkeyFilterRef = useRef(null)
-  const monkeyEyesLookingAwayRef = useRef(null)
-  const monkeyTongueStickingOutRef = useRef(null)
-  const monkeyTongueOutRef = useRef(null)
-  const monkeyTeethRef = useRef(null)
-  const monkeyEyesWideOpenRef = useRef(null)
-  const monkeyCloseLippedSmileRef = useRef(null)
+  const nosePiercingRef = useRef(null)
+  const noseStudRef = useRef(null)
   const borderRef = useRef(null)
   const faceLandmarkerRef = useRef(null)
   const animationIdRef = useRef(null)
@@ -118,31 +114,63 @@ function App() {
   const windowsOpeningAudioRef = useRef(null)
   const imageCountRef = useRef(0)
   const captureCounterRef = useRef(0)  // Tracks total captures ever made (never decreases)
+  const isCapturingRef = useRef(false)  // Prevent concurrent captures
   const expressionFrameCounterRef = useRef(0)  // Tracks consecutive frames with same expression
   const lastExpressionRef = useRef('eyes_looking_away')  // Tracks last stable expression
   const hasActiveExpressionRef = useRef(false)  // Tracks if we're in a non-default expression
   const eyesWereClosedRef = useRef(false)  // Tracks if eyes were just closed (for blink detection)
   const musicSliderRef = useRef(null)
   const frameCounterRef = useRef(0)  // Tracks frame number for animated grain
+  const detectedFaceCountRef = useRef(0)  // Tracks current face count for notifications
+  const handLandmarkerRef = useRef(null)
+  const currentVijayPoseRef = useRef('default')
+  const cachedVijayImagesRef = useRef({}) // Cache loaded images
+  const hasActivePoseRef = useRef(false) // Tracks if we have an active hand pose
+  const lastDetectedPoseRef = useRef(null) // Track last detected pose for debouncing
+  const poseFrameCounterRef = useRef(0) // Debounce frame counter for pose stability
+  const eyeStateRef = useRef(false) // Track blink state for hand poses
+  const vijayPoseImagesRef = useRef({
+    default: new URL('./assets/vijay_filters/vijay.png', import.meta.url).href,
+    hands_up: new URL('./assets/vijay_filters/hands_up.png', import.meta.url).href,
+    thumbs_up: new URL('./assets/vijay_filters/thumbs_up.png', import.meta.url).href,
+    hand_under_chin: new URL('./assets/vijay_filters/hand_under_chin.png', import.meta.url).href
+  })
 
   // State for overlay positioning
-  const [offsetX, setOffsetX] = useState(-4)
-  const [offsetY, setOffsetY] = useState(-81)
-  const [scale, setScale] = useState(1)
-  const [rotation, setRotation] = useState(0)
-  
-  // State for monkey filter positioning
-  const [monkeyOffsetX, setMonkeyOffsetX] = useState(-30)
-  const [monkeyOffsetY, setMonkeyOffsetY] = useState(-26)
-  const [monkeyScale, setMonkeyScale] = useState(1.2)
-  const [monkeyRotation, setMonkeyRotation] = useState(0)
+  const [offsetX, setOffsetX] = useState(() => {
+    const saved = localStorage.getItem('vijayOffsetX')
+    return saved !== null ? JSON.parse(saved) : -22
+  })
+  const [offsetY, setOffsetY] = useState(() => {
+    const saved = localStorage.getItem('vijayOffsetY')
+    return saved !== null ? JSON.parse(saved) : -289
+  })
+  const [scale, setScale] = useState(() => {
+    const saved = localStorage.getItem('vijayScale')
+    return saved !== null ? JSON.parse(saved) : 1.6
+  })
+  const [rotation, setRotation] = useState(() => {
+    const saved = localStorage.getItem('vijayRotation')
+    return saved !== null ? JSON.parse(saved) : 0
+  })
   
   // State for bow filter positioning
   const [bowOffsetX, setBowOffsetX] = useState(0)
   const [bowOffsetY, setBowOffsetY] = useState(10)
   const [bowScale, setBowScale] = useState(0.2)
   const [bowRotation, setBowRotation] = useState(20)
-  const [detectedMonkeyExpression, setDetectedMonkeyExpression] = useState('eyes_looking_away')
+  
+  // State for eye gem positioning
+  const [eyeGemOffsetX, setEyeGemOffsetX] = useState(5)
+  const [eyeGemOffsetY, setEyeGemOffsetY] = useState(2)
+  const [eyeGemScale, setEyeGemScale] = useState(0.015)
+  const [eyeGemRotation, setEyeGemRotation] = useState(0)
+  
+  // State for nose stud positioning (on right nostril)
+  const [noseStudOffsetX, setNoseStudOffsetX] = useState(8)
+  const [noseStudOffsetY, setNoseStudOffsetY] = useState(-5)
+  const [noseStudScale, setNoseStudScale] = useState(0.04)
+  const [noseStudRotation, setNoseStudRotation] = useState(0)
   
   const [isWebcamActive, setIsWebcamActive] = useState(false)
   const [cameraError, setCameraError] = useState(null)
@@ -159,6 +187,8 @@ function App() {
   const [downloadsPage, setDownloadsPage] = useState(0)
   const [trashPage, setTrashPage] = useState(0)
   const [captureNotification, setCaptureNotification] = useState(null)
+  const [captureNotificationMessage, setCaptureNotificationMessage] = useState('✓ Image Captured!')
+  const [notificationMessageIndex, setNotificationMessageIndex] = useState(0)
   const [showMusicPlayer, setShowMusicPlayer] = useState(false)
   const [isMusciPlaying, setIsMusicPlaying] = useState(false)
   const [showVijayOverlay, setShowVijayOverlay] = useState(false)
@@ -172,6 +202,7 @@ function App() {
   const [isDraggingSlider, setIsDraggingSlider] = useState(false)
   const [currentSongIndex, setCurrentSongIndex] = useState(0)
   const [audioCurrentTime, setAudioCurrentTime] = useState(0)
+  const [audioDuration, setAudioDuration] = useState(0)
   const [replayCurrentSong, setReplayCurrentSong] = useState(false)
   const bgMusicRef = useRef(null)
   const imageModalRef = useRef(null)
@@ -188,7 +219,12 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
   const [captureNotificationPos, setCaptureNotificationPos] = useState({ x: 400, y: 200 })
   const [showGallery, setShowGallery] = useState(false)
   const [galleryPos, setGalleryPos] = useState({ x: 900, y: 475 })
+  const [showStorageLimitModal, setShowStorageLimitModal] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isSavingZip, setIsSavingZip] = useState(false)
+  const [showSaveAllModal, setShowSaveAllModal] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [galleryImagesLoaded, setGalleryImagesLoaded] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const saved = localStorage.getItem('isLoggedIn')
     return saved ? JSON.parse(saved) : false
@@ -207,13 +243,21 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     const saved = localStorage.getItem('useBowFilter')
     return saved ? JSON.parse(saved) : false
   })
+  const [useEyeGem, setUseEyeGem] = useState(() => {
+    const saved = localStorage.getItem('useEyeGem')
+    return saved ? JSON.parse(saved) : false
+  })
+  const [useNoseStud, setUseNoseStud] = useState(() => {
+    const saved = localStorage.getItem('useNoseStud')
+    return saved ? JSON.parse(saved) : false
+  })
   const [use4Grid, setUse4Grid] = useState(() => {
     const saved = localStorage.getItem('use4Grid')
     return saved ? JSON.parse(saved) : false
   })
-  const [useMonkeyFilter, setUseMonkeyFilter] = useState(() => {
-    const saved = localStorage.getItem('useMonkeyFilter')
-    return saved ? JSON.parse(saved) : false
+  const [useGrain, setUseGrain] = useState(() => {
+    const saved = localStorage.getItem('useGrain')
+    return saved ? JSON.parse(saved) : true
   })
   const [currentBorder, setCurrentBorder] = useState(() => {
     const saved = localStorage.getItem('currentBorder')
@@ -223,7 +267,18 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     const saved = localStorage.getItem('showVijayImage')
     return saved ? JSON.parse(saved) : true
   })
+  const [disableHandTracking, setDisableHandTracking] = useState(() => {
+    const saved = localStorage.getItem('disableHandTracking')
+    return saved ? JSON.parse(saved) : false
+  })
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [timerOption, setTimerOption] = useState(() => {
+    const saved = localStorage.getItem('captureTimerOption')
+    return saved ? JSON.parse(saved) : 'none'
+  })
+  const [showTimerDropdown, setShowTimerDropdown] = useState(false)
+  const [countdownValue, setCountdownValue] = useState(0)
+  const countdownIntervalRef = useRef(null)
 
   // Fade in animation
   const fadeProps = useSpring({ opacity: 1, from: { opacity: 0 } })
@@ -268,8 +323,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         console.error('Error loading trashed images:', error)
       }
     }
-    // Load window positions from localStorage
-    const savedWindowPositions = localStorage.getItem('windowPositions')
+    // Load window positions from sessionStorage (session-only, resets on page reload/tab close)
+    const savedWindowPositions = sessionStorage.getItem('windowPositions')
     if (savedWindowPositions) {
       try {
         const positions = JSON.parse(savedWindowPositions)
@@ -297,7 +352,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     localStorage.setItem('currentFilter', JSON.stringify(currentFilter))
   }, [currentFilter])
 
-  // Persist window positions to localStorage
+  // Persist window positions to sessionStorage (session-only, resets on page reload/tab close)
   useEffect(() => {
     const windowPositions = {
       vijayOverlayPos,
@@ -309,7 +364,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       galleryPos,
       captureNotificationPos,
     }
-    localStorage.setItem('windowPositions', JSON.stringify(windowPositions))
+    sessionStorage.setItem('windowPositions', JSON.stringify(windowPositions))
   }, [vijayOverlayPos, downloadsPos, musicPlayerPos, controlsWindowPos, trashPos, videoPos, galleryPos, captureNotificationPos])
 
   // Persist 4-grid toggle to localStorage
@@ -317,20 +372,47 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     localStorage.setItem('use4Grid', JSON.stringify(use4Grid))
   }, [use4Grid])
 
+  // Persist grain toggle to localStorage
+  useEffect(() => {
+    localStorage.setItem('useGrain', JSON.stringify(useGrain))
+  }, [useGrain])
+
+  // Persist Vijay position to localStorage
+  useEffect(() => {
+    localStorage.setItem('vijayOffsetX', JSON.stringify(offsetX))
+  }, [offsetX])
+
+  useEffect(() => {
+    localStorage.setItem('vijayOffsetY', JSON.stringify(offsetY))
+  }, [offsetY])
+
+  useEffect(() => {
+    localStorage.setItem('vijayScale', JSON.stringify(scale))
+  }, [scale])
+
+  useEffect(() => {
+    localStorage.setItem('vijayRotation', JSON.stringify(rotation))
+  }, [rotation])
+
   // Persist heart filter toggle to localStorage
   useEffect(() => {
     localStorage.setItem('useHeartFilter', JSON.stringify(useHeartFilter))
   }, [useHeartFilter])
 
-  // Persist monkey filter toggle to localStorage
-  useEffect(() => {
-    localStorage.setItem('useMonkeyFilter', JSON.stringify(useMonkeyFilter))
-  }, [useMonkeyFilter])
-
   // Persist bow filter toggle to localStorage
   useEffect(() => {
     localStorage.setItem('useBowFilter', JSON.stringify(useBowFilter))
   }, [useBowFilter])
+
+  // Persist eye gem toggle to localStorage
+  useEffect(() => {
+    localStorage.setItem('useEyeGem', JSON.stringify(useEyeGem))
+  }, [useEyeGem])
+
+  // Persist nose stud toggle to localStorage
+  useEffect(() => {
+    localStorage.setItem('useNoseStud', JSON.stringify(useNoseStud))
+  }, [useNoseStud])
 
   // Persist current border to localStorage
   useEffect(() => {
@@ -341,6 +423,16 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
   useEffect(() => {
     localStorage.setItem('showVijayImage', JSON.stringify(showVijayImage))
   }, [showVijayImage])
+
+  // Persist disable hand tracking toggle to localStorage
+  useEffect(() => {
+    localStorage.setItem('disableHandTracking', JSON.stringify(disableHandTracking))
+  }, [disableHandTracking])
+
+  // Persist timer option to localStorage
+  useEffect(() => {
+    localStorage.setItem('captureTimerOption', JSON.stringify(timerOption))
+  }, [timerOption])
 
   // Keep imageCountRef in sync with imageCount state
   useEffect(() => {
@@ -361,6 +453,17 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     }
   }, [showVijayImage])
 
+  // Set controls window position based on whether video window is open
+  useEffect(() => {
+    if (!showVideo) {
+      // Video window not open - match video window's default position
+      setControlsWindowPos({ x: 1180, y: 5 })
+    } else {
+      // Video window is open - use controls default position
+      setControlsWindowPos({ x: 855, y: 355 })
+    }
+  }, [showVideo])
+
   // Cheek and jawline landmark indices from MediaPipe Face Landmarker
   // Left cheek: index 234, Right cheek: index 454
   // Left jawline: index 206, Right shoulder: index 12
@@ -377,7 +480,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8'
         )
 
-        const { FilesetResolver, FaceLandmarker } = visionModule
+        const { FilesetResolver, FaceLandmarker, HandLandmarker } = visionModule
 
         const vision = await FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm'
@@ -392,8 +495,18 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
           numFaces: 10,
         })
 
+        const handLandmarker = await HandLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath:
+              'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+          },
+          runningMode: 'VIDEO',
+          numHands: 2,
+        })
+
         faceLandmarkerRef.current = faceLandmarker
-        console.log('Face Landmarker initialized')
+        handLandmarkerRef.current = handLandmarker
+        console.log('Face and Hand Landmarkers initialized')
 
       } catch (err) {
         console.error(err)
@@ -445,22 +558,40 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
 
   // Listen to audio play/pause events to update UI
   useEffect(() => {
-    const audioElement = bgMusicRef.current
-    if (!audioElement) return
+    const attachListeners = () => {
+      const audioElement = bgMusicRef.current
+      
+      if (!audioElement) {
+        // Ref not ready yet, try again in 500ms
+        setTimeout(attachListeners, 500)
+        return
+      }
 
-    const handlePlay = () => setIsMusicPlaying(true)
-    const handlePause = () => setIsMusicPlaying(false)
-    const handleTimeUpdate = () => setAudioCurrentTime(audioElement.currentTime)
+      const handlePlay = () => setIsMusicPlaying(true)
+      const handlePause = () => setIsMusicPlaying(false)
+      const handleTimeUpdate = () => setAudioCurrentTime(audioElement.currentTime)
+      const handleLoadedMetadata = () => {
+        setAudioDuration(audioElement.duration || 0)
+        setAudioCurrentTime(audioElement.currentTime)
+      }
 
-    audioElement.addEventListener('play', handlePlay)
-    audioElement.addEventListener('pause', handlePause)
-    audioElement.addEventListener('timeupdate', handleTimeUpdate)
+      audioElement.addEventListener('play', handlePlay)
+      audioElement.addEventListener('pause', handlePause)
+      audioElement.addEventListener('timeupdate', handleTimeUpdate)
+      audioElement.addEventListener('loadedmetadata', handleLoadedMetadata)
 
-    return () => {
-      audioElement.removeEventListener('play', handlePlay)
-      audioElement.removeEventListener('pause', handlePause)
-      audioElement.removeEventListener('timeupdate', handleTimeUpdate)
+      return () => {
+        audioElement.removeEventListener('play', handlePlay)
+        audioElement.removeEventListener('pause', handlePause)
+        audioElement.removeEventListener('timeupdate', handleTimeUpdate)
+        audioElement.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      }
     }
+    
+    // Start checking after 0ms (next tick)
+    const timeoutId = setTimeout(attachListeners, 0)
+    
+    return () => clearTimeout(timeoutId)
   }, [])
 
   // Preload critical overlay image immediately
@@ -495,42 +626,6 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       img.src = src
     }
 
-    // Load monkey filter variants
-    const monkeyVariants = {
-      eyes_looking_away: new URL('./assets/monkey_filters/eyes_looking_away.png', import.meta.url).href,
-      tongue_sticking_out: new URL('./assets/monkey_filters/tongue_sticking_out.png', import.meta.url).href,
-      tongue_out: new URL('./assets/monkey_filters/tongue_out.png', import.meta.url).href,
-      teeth: new URL('./assets/monkey_filters/teeth.png', import.meta.url).href,
-      eyes_wide_open: new URL('./assets/monkey_filters/eyes_wide_open.png', import.meta.url).href,
-      close_lipped_smile: new URL('./assets/monkey_filters/close_lipped_smile.png', import.meta.url).href
-    }
-
-    Object.entries(monkeyVariants).forEach(([key, src]) => {
-      const img = new Image()
-      img.src = src
-      img.onload = () => {
-        if (key === 'eyes_looking_away') monkeyEyesLookingAwayRef.current = img
-        else if (key === 'tongue_sticking_out') monkeyTongueStickingOutRef.current = img
-        else if (key === 'tongue_out') monkeyTongueOutRef.current = img
-        else if (key === 'teeth') monkeyTeethRef.current = img
-        else if (key === 'eyes_wide_open') monkeyEyesWideOpenRef.current = img
-        else if (key === 'close_lipped_smile') monkeyCloseLippedSmileRef.current = img
-      }
-      img.onerror = () => {
-        console.error(`Failed to load monkey filter: ${key}`)
-      }
-    })
-
-    // Also load default monkey filter for backward compatibility
-    const monkeyImg = new Image()
-    monkeyImg.src = new URL('./assets/monkey_filter.png', import.meta.url).href
-    monkeyImg.onload = () => {
-      monkeyFilterRef.current = monkeyImg
-    }
-    monkeyImg.onerror = () => {
-      console.error('Failed to load monkey filter image')
-    }
-
     // Load bow filter
     const bowImg = new Image()
     bowImg.src = new URL('./assets/bow.png', import.meta.url).href
@@ -539,6 +634,26 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     }
     bowImg.onerror = () => {
       console.error('Failed to load bow filter image')
+    }
+
+    // Load eye gem (nose piercing stud on left nostril)
+    const eyeGemImg = new Image()
+    eyeGemImg.src = new URL('./assets/stud.png', import.meta.url).href
+    eyeGemImg.onload = () => {
+      nosePiercingRef.current = eyeGemImg
+    }
+    eyeGemImg.onerror = () => {
+      console.error('Failed to load eye gem image')
+    }
+
+    // Load nose stud
+    const noseStudImg = new Image()
+    noseStudImg.src = new URL('./assets/nose_stud.png', import.meta.url).href
+    noseStudImg.onload = () => {
+      noseStudRef.current = noseStudImg
+    }
+    noseStudImg.onerror = () => {
+      console.error('Failed to load nose stud image')
     }
 
     // Preload Vijay image
@@ -561,7 +676,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     miffy: new URL('./assets/borders/miffy.png', import.meta.url).href,
     rajini: new URL('./assets/borders/rajini.png', import.meta.url).href,
     sari: new URL('./assets/borders/sari.png', import.meta.url).href,
-    thali: new URL('./assets/borders/thali.png', import.meta.url).href
+    thali: new URL('./assets/borders/thali.png', import.meta.url).href,
+    chai: new URL('./assets/borders/chai.png', import.meta.url).href
   }
 
   useEffect(() => {
@@ -703,6 +819,79 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     ctx.putImageData(imageData, 0, 0)
   }
 
+  // Detect hand pose from hand landmarks
+  const detectHandPose = (handLandmarks) => {
+    if (disableHandTracking) {
+      return 'default'
+    }
+    
+    if (!handLandmarks || handLandmarks.length === 0) {
+      return 'default'
+    }
+
+    const hand = handLandmarks[0]
+    if (!hand) return 'default'
+
+    // Get key hand joint positions
+    const wrist = hand[0]
+    const thumbTip = hand[4]
+    const indexTip = hand[8]
+    const middleTip = hand[12]
+    const ringTip = hand[16]
+    const pinkyTip = hand[20]
+    const palm = hand[5] // Index MCP as palm reference
+    const middleHand = hand[9] // Middle MCP
+
+    // Helper function to calculate distance between two points
+    const distance = (p1, p2) => {
+      return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2) + Math.pow(p2.z - p1.z, 2))
+    }
+
+    // Helper function to check if a finger is raised (tip above MCP)
+    const isFingerRaised = (tipPoint, mcpPoint) => {
+      return tipPoint.y < mcpPoint.y - 0.05
+    }
+
+    // Helper function to check if fingers are close together
+    const areClose = (p1, p2, threshold = 0.05) => {
+      return distance(p1, p2) < threshold
+    }
+
+    // Detect specific poses
+    const thumbRaised = isFingerRaised(thumbTip, hand[2])
+    const indexRaised = isFingerRaised(indexTip, hand[6])
+    const middleRaised = isFingerRaised(middleTip, hand[10])
+    const ringRaised = isFingerRaised(ringTip, hand[14])
+    const pinkyRaised = isFingerRaised(pinkyTip, hand[18])
+
+    // Count raised fingers
+    const raisedCount = [thumbRaised, indexRaised, middleRaised, ringRaised, pinkyRaised].filter(Boolean).length
+
+    // Check if hand is near face (under chin position) - more lenient detection
+    const handY = wrist.y
+    const handX = wrist.x
+    // Hand under chin - detect if hand is in lower portion of frame (near chin area)
+    const isHandUnderChin = handY > 0.55
+
+    // Detect thumbs up (only thumb raised, hand orientation)
+    if (thumbRaised && !indexRaised && !middleRaised && !ringRaised && !pinkyRaised && thumbTip.y < wrist.y - 0.1) {
+      return 'thumbs_up'
+    }
+
+    // Detect hands up (2+ fingers raised)
+    if (raisedCount >= 2) {
+      return 'hands_up'
+    }
+
+    // Detect hand under chin (any hand position in lower area - triggers with 1+ hand)
+    if (isHandUnderChin) {
+      return 'hand_under_chin'
+    }
+
+    // No specific pose detected - return null to keep current pose
+    return null
+  }
+
   // Draw frame with face detection and overlay
   const drawFrame = () => {
     if (!videoRef.current || !canvasRef.current || !faceLandmarkerRef.current) {
@@ -737,7 +926,32 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         allDetectedFaces = results.faceLandmarks
-        const landmarks = results.faceLandmarks[0]
+        detectedFaceCountRef.current = results.faceLandmarks.length
+        
+        // Select the face closest to center to prevent flickering with multiple users
+        let closestFaceIndex = 0
+        if (results.faceLandmarks.length > 1) {
+          const centerX = 0.5
+          const centerY = 0.5
+          let minDistance = Infinity
+          
+          results.faceLandmarks.forEach((faceLandmarks, index) => {
+            // Use nose tip (landmark 1) as the face center
+            const noseTip = faceLandmarks[1]
+            if (noseTip) {
+              const distance = Math.sqrt(
+                Math.pow(noseTip.x - centerX, 2) + 
+                Math.pow(noseTip.y - centerY, 2)
+              )
+              if (distance < minDistance) {
+                minDistance = distance
+                closestFaceIndex = index
+              }
+            }
+          })
+        }
+        
+        const landmarks = results.faceLandmarks[closestFaceIndex]
         allFaceLandmarks = landmarks
 
         // Get right shoulder position for vijay
@@ -753,7 +967,96 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
             canvas.height
           )
 
-          // Draw vijay.png at cheek position if enabled
+          // Detect hand poses for Vijay filter
+          let detectedPose = null
+          let hasBlinked = false
+          
+          // Check for blink (eyes closed then open)
+          // Use eye top/bottom landmarks for better blink detection
+          const leftEyeTop = landmarks[159]
+          const leftEyeBottom = landmarks[145]
+          const rightEyeTop = landmarks[386]
+          const rightEyeBottom = landmarks[374]
+          
+          if (leftEyeTop && leftEyeBottom && rightEyeTop && rightEyeBottom) {
+            // Calculate eye opening distance (vertical distance between top and bottom)
+            const leftEyeOpen = Math.abs(leftEyeTop.y - leftEyeBottom.y)
+            const rightEyeOpen = Math.abs(rightEyeTop.y - rightEyeBottom.y)
+            const avgEyeOpen = (leftEyeOpen + rightEyeOpen) / 2
+            
+            // Eyes are closed when opening is very small
+            const eyesClosedNow = avgEyeOpen < 0.02
+            // Blink detected: transition from closed to open
+            hasBlinked = eyeStateRef.current && !eyesClosedNow
+            eyeStateRef.current = eyesClosedNow
+          }
+          
+          if (showVijayImage && handLandmarkerRef.current) {
+            try {
+              const handResults = handLandmarkerRef.current.detectForVideo(video, Date.now())
+              if (handResults.landmarks && handResults.landmarks.length > 0) {
+                detectedPose = detectHandPose(handResults.landmarks)
+              }
+            } catch (error) {
+              console.error('Hand detection error:', error)
+            }
+          }
+          
+          // Apply hand pose logic similar to monkey expression detection
+          // If we have an active pose and no new pose is detected, keep the active pose
+          if (hasActivePoseRef.current && detectedPose === null) {
+            // Only go back to default if user blinks
+            if (hasBlinked) {
+              hasActivePoseRef.current = false
+              currentVijayPoseRef.current = 'default'
+            }
+            // Otherwise ignore null detection - keep the active pose
+          } else if (detectedPose !== null) {
+            // Mark that we have an active pose
+            hasActivePoseRef.current = true
+          }
+          
+          // Debounce pose changes for stability
+          if (detectedPose === lastDetectedPoseRef.current) {
+            poseFrameCounterRef.current++
+          } else {
+            poseFrameCounterRef.current = 1
+            lastDetectedPoseRef.current = detectedPose
+          }
+          
+          // Determine required frames for stability (null = less sensitive to avoid flicker)
+          let requiredFrames = 3
+          if (detectedPose === null) {
+            requiredFrames = 5 // Less sensitive for null/no detection
+          }
+          
+          // Only update pose if stable for required frames
+          if (poseFrameCounterRef.current >= requiredFrames && detectedPose !== null) {
+            currentVijayPoseRef.current = detectedPose
+          }
+
+          // Draw vijay image based on detected pose if enabled
+          if (showVijayImage) {
+            const currentPose = currentVijayPoseRef.current
+            const poseImagePath = vijayPoseImagesRef.current[currentPose]
+            if (poseImagePath) {
+              // Check if image is already cached
+              if (!cachedVijayImagesRef.current[currentPose]) {
+                // Load the image if not cached
+                const img = new Image()
+                img.src = poseImagePath
+                img.onload = () => {
+                  cachedVijayImagesRef.current[currentPose] = img
+                  overlayImageRef.current = img
+                }
+              } else {
+                // Use cached image
+                overlayImageRef.current = cachedVijayImagesRef.current[currentPose]
+              }
+            }
+          }
+
+          // Draw vijay at cheek position if enabled
           if (showVijayImage && overlayImageRef.current) {
             const img = overlayImageRef.current
             
@@ -767,7 +1070,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
               // Calculate eye distance in normalized coordinates
               const eyeDistance = Math.sqrt(
                 Math.pow(rightEye.x - leftEye.x, 2) + 
-                Math.pow(rightEye.y - leftEye.y, 2)
+                Math.pow(rightEye.y - rightEye.y, 2)
               )
               
               // Reference eye distance at default zoom (around 0.15 in normalized coords)
@@ -779,8 +1082,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
               const proximityRatio = eyeDistance / referenceEyeDistance
               dynamicScale = scale * proximityRatio
               
-              // Clamp scale between 0.3 and 1.5 to prevent extreme values
-              dynamicScale = Math.max(0.3, Math.min(1.5, dynamicScale))
+              // Clamp scale between 0.3 and 3 to prevent extreme values but allow full slider range
+              dynamicScale = Math.max(0.3, Math.min(3, dynamicScale))
             }
             
             const scaledWidth = img.width * dynamicScale
@@ -802,192 +1105,6 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
             )
             ctx.restore()
             ctx.globalAlpha = 1.0
-          }
-        }
-
-        // Detect facial expression for monkey filter variant
-        let detectedExpression = 'eyes_looking_away' // default
-        const leftEye = landmarks[33]
-        const rightEye = landmarks[263]
-        const upperLip = landmarks[13]
-        const lowerLip = landmarks[14]
-        const leftEyelid = landmarks[159]
-        const rightEyelid = landmarks[386]
-
-        if (leftEye && rightEye && upperLip && lowerLip && leftEyelid && rightEyelid) {
-          // Calculate eye opening (vertical distance between upper and lower eyelids)
-          const eyeOpeningLeft = Math.abs(landmarks[159].y - landmarks[145].y)
-          const eyeOpeningRight = Math.abs(landmarks[386].y - landmarks[374].y)
-          const avgEyeOpening = (eyeOpeningLeft + eyeOpeningRight) / 2
-
-          // Detect wink (only one eye closed)
-          const isLeftEyeClosed = eyeOpeningLeft < 0.015
-          const isRightEyeClosed = eyeOpeningRight < 0.015
-          const isWinking = (isLeftEyeClosed && !isRightEyeClosed) || (!isLeftEyeClosed && isRightEyeClosed)
-          const areBothEyesClosed = isLeftEyeClosed && isRightEyeClosed
-
-          // Calculate mouth opening
-          const mouthOpening = Math.abs(upperLip.y - lowerLip.y)
-
-          // Check for tongue visibility - very sensitive to detect even tiny tongue protrusion
-          const tongueLandmark = landmarks[17] // Tongue tip
-          // Tongue out even with very small protrusion (above lower lip)
-          const isTongueOut = tongueLandmark && tongueLandmark.y > lowerLip.y - 0.03
-
-          // Calculate mouth corners for smile detection
-          const leftMouthCorner = landmarks[61]
-          const rightMouthCorner = landmarks[291]
-          const mouthCornerHeight = (leftMouthCorner.y + rightMouthCorner.y) / 2
-
-          // Determine expression
-          if (isTongueOut && mouthOpening > 0.02 && mouthOpening <= 0.055) {
-            // Tongue detected (only if teeth not detected, and mouth is partially open but not too wide)
-            // Additional check: only show tongue if upper lip is clearly visible (not blocking it with teeth)
-            const upperLipForTongue = landmarks[0]
-            const topToothLine = upperLipForTongue.y - 0.04
-            if (tongueLandmark.y > topToothLine) {
-              detectedExpression = 'tongue_out'
-            }
-          } else if (isWinking) {
-            // Wink detected (one eye closed) - use close_lipped_smile
-            detectedExpression = 'close_lipped_smile'
-          } else if (avgEyeOpening > 0.045) {
-            detectedExpression = 'eyes_wide_open'
-          } else if (mouthCornerHeight < landmarks[10].y - 0.05 && mouthOpening < 0.02) {
-            // Smile detected (mouth corners up, mouth mostly closed)
-            detectedExpression = 'close_lipped_smile'
-          }
-
-          // Detect blink (both eyes close then open)
-          const bothEyesClosedNow = isLeftEyeClosed && isRightEyeClosed
-          const isBlink = eyesWereClosedRef.current && !bothEyesClosedNow && avgEyeOpening > 0.02
-          eyesWereClosedRef.current = bothEyesClosedNow
-
-          // If we have an active expression and user returns to default, only switch if they blink
-          if (hasActiveExpressionRef.current && detectedExpression === 'eyes_looking_away') {
-            // Only go back to default if user blinks
-            if (isBlink) {
-              hasActiveExpressionRef.current = false
-            } else {
-              // Ignore the default detection - keep the active expression
-              detectedExpression = lastExpressionRef.current
-            }
-          } else if (detectedExpression !== 'eyes_looking_away') {
-            // Mark that we have an active expression
-            hasActiveExpressionRef.current = true
-          }
-
-          // Debounce expression changes with different sensitivity levels
-          // Default: less sensitive (10 frames), others: more sensitive (3 frames)
-          if (detectedExpression === lastExpressionRef.current) {
-            expressionFrameCounterRef.current++
-          } else {
-            expressionFrameCounterRef.current = 1
-            lastExpressionRef.current = detectedExpression
-          }
-
-          // Determine required frames based on expression type
-          let requiredFrames = 3 // Default: more sensitive
-          if (detectedExpression === 'eyes_looking_away') {
-            requiredFrames = 10 // Less sensitive for default
-          }
-
-          // Only update state if expression has been stable for required frames
-          if (expressionFrameCounterRef.current >= requiredFrames) {
-            setDetectedMonkeyExpression(detectedExpression)
-          }
-        }
-
-        // Draw monkey filter on right shoulder if enabled
-        if (useMonkeyFilter && allDetectedFaces.length > 0) {
-          // Find the face closest to center of screen (to avoid flickering between multiple users)
-          let centerMostFace = allDetectedFaces[0]
-          let closestDistance = Infinity
-          const screenCenterX = 0.5 // Normalized center X
-          const screenCenterY = 0.5 // Normalized center Y
-
-          allDetectedFaces.forEach((face) => {
-            const nose = face[0] // Nose landmark (index 0)
-            if (nose) {
-              const distanceToCenter = Math.sqrt(
-                Math.pow(nose.x - screenCenterX, 2) + Math.pow(nose.y - screenCenterY, 2)
-              )
-              if (distanceToCenter < closestDistance) {
-                closestDistance = distanceToCenter
-                centerMostFace = face
-              }
-            }
-          })
-
-          // Use only the center-most face for monkey filter
-          const selectedFaceLandmarks = centerMostFace
-          const shoulderLandmarkForMonkey = selectedFaceLandmarks[RIGHT_SHOULDER_INDEX]
-
-          if (shoulderLandmarkForMonkey) {
-            // Select the appropriate monkey filter based on detected expression
-            let monkeyImg = null
-            if (detectedExpression === 'teeth' && monkeyTeethRef.current) {
-              monkeyImg = monkeyTeethRef.current
-            } else if (detectedExpression === 'tongue_out' && monkeyTongueOutRef.current) {
-              monkeyImg = monkeyTongueOutRef.current
-            } else if (detectedExpression === 'tongue_sticking_out' && monkeyTongueStickingOutRef.current) {
-              monkeyImg = monkeyTongueStickingOutRef.current
-            } else if (detectedExpression === 'eyes_wide_open' && monkeyEyesWideOpenRef.current) {
-              monkeyImg = monkeyEyesWideOpenRef.current
-            } else if (detectedExpression === 'close_lipped_smile' && monkeyCloseLippedSmileRef.current) {
-              monkeyImg = monkeyCloseLippedSmileRef.current
-            } else if (monkeyEyesLookingAwayRef.current) {
-              monkeyImg = monkeyEyesLookingAwayRef.current
-            } else if (monkeyFilterRef.current) {
-              monkeyImg = monkeyFilterRef.current
-            }
-
-            if (monkeyImg) {
-              const { pixelX, pixelY } = normalizedToCanvasCoordinates(
-                shoulderLandmarkForMonkey.x,
-                shoulderLandmarkForMonkey.y,
-                canvas.width,
-                canvas.height
-              )
-              
-              // Calculate dynamic scale based on face size (proximity to camera)
-              const leftEye = selectedFaceLandmarks[33]
-              const rightEye = selectedFaceLandmarks[263]
-              
-              let dynamicScale = monkeyScale
-              if (leftEye && rightEye) {
-                const eyeDistance = Math.sqrt(
-                  Math.pow(rightEye.x - leftEye.x, 2) + 
-                  Math.pow(rightEye.y - leftEye.y, 2)
-                )
-                
-                const referenceEyeDistance = 0.15
-                const proximityRatio = eyeDistance / referenceEyeDistance
-                dynamicScale = monkeyScale * proximityRatio
-                // Allow scaling from 0.4 to 2.0 for dynamic movement based on proximity
-                dynamicScale = Math.max(0.4, Math.min(2.0, dynamicScale))
-              }
-              
-              const scaledWidth = monkeyImg.width * dynamicScale
-              const scaledHeight = monkeyImg.height * dynamicScale
-
-              const drawX = pixelX + 40 + monkeyOffsetX
-              const drawY = pixelY + 60 - scaledHeight / 2 + monkeyOffsetY
-
-              ctx.globalAlpha = 1
-              ctx.save()
-              ctx.translate(drawX + scaledWidth / 2, drawY + scaledHeight / 2)
-              ctx.rotate((monkeyRotation * Math.PI) / 180)
-              ctx.drawImage(
-                monkeyImg,
-                -scaledWidth / 2,
-                -scaledHeight / 2,
-                scaledWidth,
-                scaledHeight
-              )
-              ctx.restore()
-              ctx.globalAlpha = 1.0
-            }
           }
         }
       }
@@ -1027,8 +1144,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     }
 
     // Add realistic film grain texture to all frames with frame-based animation
-    frameCounterRef.current++
-    addGrainTexture(canvas, ctx, 0.12, frameCounterRef.current)
+    if (useGrain) {
+      frameCounterRef.current++
+      addGrainTexture(canvas, ctx, 0.12, frameCounterRef.current)
+    }
 
     // Draw heart filter AFTER black & white and grain so it stays colored and on top
     // Apply to all detected faces
@@ -1156,10 +1275,127 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       }
     }
 
+    // Draw eye gem on left side of nose if enabled
+    if (useEyeGem && nosePiercingRef.current && allDetectedFaces.length > 0) {
+      try {
+        allDetectedFaces.forEach((faceLandmarks, faceIndex) => {
+          const leftEye = faceLandmarks[33]  // Left eye landmark
+          const rightEye = faceLandmarks[263] // Right eye landmark
+          const leftNostril = faceLandmarks[31] // Left nostril landmark
+          
+          if (!leftNostril) {
+            return
+          }
+          
+          const { pixelX: nostrilX, pixelY: nostrilY } = normalizedToCanvasCoordinates(
+            leftNostril.x,
+            leftNostril.y,
+            canvas.width,
+            canvas.height
+          )
+
+          // Calculate dynamic scale based on face size (proximity to camera)
+          let dynamicScale = 0.015
+          if (leftEye && rightEye) {
+            const eyeDistance = Math.sqrt(
+              Math.pow(rightEye.x - leftEye.x, 2) + 
+              Math.pow(rightEye.y - leftEye.y, 2)
+            )
+            const referenceEyeDistance = 0.15
+            const proximityRatio = eyeDistance / referenceEyeDistance
+            dynamicScale = eyeGemScale * proximityRatio
+            dynamicScale = Math.max(0.008, Math.min(0.15, dynamicScale))
+          }
+
+          const studImg = nosePiercingRef.current
+          const studWidth = studImg.width * dynamicScale
+          const studHeight = studImg.height * dynamicScale
+
+          // Position on left side of nose near left nostril
+          const studX = nostrilX + eyeGemOffsetX - studWidth / 2
+          const studY = nostrilY + eyeGemOffsetY - studHeight / 2
+
+          ctx.save()
+          ctx.globalAlpha = 1
+          ctx.translate(studX + studWidth / 2, studY + studHeight / 2)
+          ctx.rotate((eyeGemRotation * Math.PI) / 180)
+          ctx.drawImage(
+            studImg,
+            -studWidth / 2,
+            -studHeight / 2,
+            studWidth,
+            studHeight
+          )
+          ctx.restore()
+        })
+      } catch (error) {
+        console.error('Eye gem rendering error:', error)
+      }
+    }
+
+    // Draw nose stud on right nostril
+    if (useNoseStud && noseStudRef.current && allDetectedFaces.length > 0) {
+      try {
+        allDetectedFaces.forEach((faceLandmarks, faceIndex) => {
+          const leftEye = faceLandmarks[33]  // Left eye landmark
+          const rightEye = faceLandmarks[263] // Right eye landmark
+          const rightNostril = faceLandmarks[429] // Right nostril landmark
+          
+          if (!rightNostril) {
+            return
+          }
+          
+          const { pixelX: nostrilX, pixelY: nostrilY } = normalizedToCanvasCoordinates(
+            rightNostril.x,
+            rightNostril.y,
+            canvas.width,
+            canvas.height
+          )
+
+          // Calculate dynamic scale based on face size (proximity to camera)
+          let dynamicScale = 0.07
+          if (leftEye && rightEye) {
+            const eyeDistance = Math.sqrt(
+              Math.pow(rightEye.x - leftEye.x, 2) + 
+              Math.pow(rightEye.y - leftEye.y, 2)
+            )
+            const referenceEyeDistance = 0.15
+            const proximityRatio = eyeDistance / referenceEyeDistance
+            dynamicScale = noseStudScale * proximityRatio
+            dynamicScale = Math.max(0.02, Math.min(0.25, dynamicScale))
+          }
+
+          const studImg = noseStudRef.current
+          const studWidth = studImg.width * dynamicScale
+          const studHeight = studImg.height * dynamicScale
+
+          // Position on right side of nose
+          const studX = nostrilX + noseStudOffsetX - studWidth / 2
+          const studY = nostrilY + noseStudOffsetY - studHeight / 2
+
+          // Draw the nose stud image
+          ctx.save()
+          ctx.globalAlpha = 1
+          ctx.translate(studX + studWidth / 2, studY + studHeight / 2)
+          ctx.rotate((noseStudRotation * Math.PI) / 180)
+          ctx.drawImage(
+            studImg,
+            -studWidth / 2,
+            -studHeight / 2,
+            studWidth,
+            studHeight
+          )
+          ctx.restore()
+        })
+      } catch (error) {
+        console.error('Nose stud rendering error:', error)
+      }
+    }
+
     // Draw border overlay if one is selected
     if (currentBorder !== 'none' && borderRef.current) {
       // Skip drawing non-thali borders here if in 4-grid mode (they'll be drawn on full frame or specific grids after tiling)
-      const shouldSkipForGridMode = use4Grid && currentBorder !== 'thali' && currentBorder !== 'cat'
+      const shouldSkipForGridMode = use4Grid && currentBorder !== 'thali' && currentBorder !== 'chai' && currentBorder !== 'cat'
       
       if (!shouldSkipForGridMode) {
         const borderImg = borderRef.current
@@ -1180,10 +1416,19 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         // Special handling for thali - position at bottom of webcam
         if (currentBorder === 'thali') {
           // Position thali at the bottom center of webcam
-          borderWidth = canvas.width * 0.8 // Make it bigger
+          borderWidth = canvas.width * 0.8
           borderHeight = canvas.height * 0.35
           borderX = (canvas.width - borderWidth) / 2 // Center horizontally
           borderY = canvas.height - borderHeight + 80 // Position even lower at bottom of canvas
+        }
+        
+        // Special handling for chai - position at bottom of webcam
+        if (currentBorder === 'chai') {
+          // Position chai at the bottom center of webcam
+          borderWidth = canvas.width * 0.3 // Can be adjusted separately
+          borderHeight = canvas.height * 0.4
+          borderX = (canvas.width - borderWidth) / 2 // Center horizontally
+          borderY = canvas.height - borderHeight + 70 // Position even lower at bottom of canvas
         }
         
         ctx.globalAlpha = borderOpacity
@@ -1246,7 +1491,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       ctx.fillRect(canvas.width - frameWidth / 2, 0, frameWidth / 2, canvas.height)
       
       // Draw non-thali borders on the full frame if selected
-      if (currentBorder !== 'none' && currentBorder !== 'thali' && currentBorder !== 'cat' && borderRef.current) {
+      if (currentBorder !== 'none' && currentBorder !== 'thali' && currentBorder !== 'chai' && currentBorder !== 'cat' && borderRef.current) {
         const borderImg = borderRef.current
         let borderWidth = canvas.width
         let borderHeight = canvas.height
@@ -1292,18 +1537,49 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         cancelAnimationFrame(animationIdRef.current)
       }
     }
-  }, [isWebcamActive, offsetX, offsetY, scale, rotation, monkeyOffsetX, monkeyOffsetY, monkeyScale, monkeyRotation, bowOffsetX, bowOffsetY, bowScale, bowRotation, currentFilter, use4Grid, useHeartFilter, useMonkeyFilter, useBowFilter, currentBorder, showVijayImage])
+  }, [isWebcamActive, offsetX, offsetY, scale, rotation, bowOffsetX, bowOffsetY, bowScale, bowRotation, eyeGemOffsetX, eyeGemOffsetY, eyeGemScale, eyeGemRotation, noseStudOffsetX, noseStudOffsetY, noseStudScale, noseStudRotation, currentFilter, use4Grid, useHeartFilter, useBowFilter, useEyeGem, useNoseStud, currentBorder, showVijayImage, useGrain, disableHandTracking])
 
-  // Auto-scroll gallery photos
+  // Preload gallery images when gallery opens
   useEffect(() => {
     if (!showGallery) return
+    
+    setGalleryImagesLoaded(false)
+    let loadedCount = 0
+    const totalImages = GALLERY_PHOTOS.length
+    
+    // Preload all images
+    const preloadPromises = GALLERY_PHOTOS.map((photoSrc) => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => {
+          loadedCount++
+          if (loadedCount === totalImages) {
+            setGalleryImagesLoaded(true)
+          }
+          resolve()
+        }
+        img.onerror = () => {
+          loadedCount++
+          if (loadedCount === totalImages) {
+            setGalleryImagesLoaded(true)
+          }
+          resolve()
+        }
+        img.src = photoSrc
+      })
+    })
+  }, [showGallery])
+
+  // Auto-scroll gallery photos (only when images are loaded)
+  useEffect(() => {
+    if (!showGallery || !galleryImagesLoaded) return
     
     const interval = setInterval(() => {
       setCurrentPhotoIndex((prevIndex) => (prevIndex + 1) % GALLERY_PHOTOS.length)
     }, 1000) // Change photo every 1 second
 
     return () => clearInterval(interval)
-  }, [showGallery])
+  }, [showGallery, galleryImagesLoaded])
 
   // Compress canvas to JPEG for smaller file size
   const compressCanvasToJpeg = (canvas, quality = 0.7) => {
@@ -1328,31 +1604,93 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     })
   }
 
+  // Handle capture with timer countdown
+  const handleCaptureWithTimer = async () => {
+    if (timerOption === 'none') {
+      // No timer - capture immediately
+      await capturePhoto()
+      return
+    }
+
+    // Get the timer duration in seconds
+    const timerDurations = { '3s': 3, '5s': 5, '10s': 10 }
+    const duration = timerDurations[timerOption]
+    
+    if (!duration) return
+
+    // Start countdown
+    setCountdownValue(duration)
+    let remaining = duration
+
+    const countdownInterval = setInterval(() => {
+      remaining -= 1
+      setCountdownValue(remaining)
+
+      if (remaining <= 0) {
+        clearInterval(countdownInterval)
+        setCountdownValue(0)
+        // Capture after timer completes
+        capturePhoto()
+      }
+    }, 1000)
+
+    countdownIntervalRef.current = countdownInterval
+  }
+
   // Capture and save canvas as image to local memory
   const capturePhoto = async () => {
+    // Check if storage limit reached (50 images max)
+    if (capturedImages.length >= 50) {
+      setShowStorageLimitModal(true)
+      return
+    }
+
+    // Prevent concurrent captures (ignore spam clicks)
+    if (isCapturingRef.current) {
+      console.log('Capture already in progress, ignoring additional click')
+      return
+    }
+
     if (!canvasRef.current) {
       console.error('Canvas ref not available')
       return
     }
 
-    // Play camera snap sound immediately
-    if (cameraSnapAudioRef.current) {
-      cameraSnapAudioRef.current.currentTime = 0
-      cameraSnapAudioRef.current.play().catch((error) => {
-        console.log('Could not play camera snap sound:', error)
-      })
-    }
+    isCapturingRef.current = true
 
-    // Show capture notification immediately for instant feedback
-    setCaptureNotification(true)
-    setTimeout(() => setCaptureNotification(false), 2000)
-
-    // Increment capture counter immediately
-    captureCounterRef.current += 1
-    localStorage.setItem('captureCounter', captureCounterRef.current.toString())
-
-    // Compress image in background (non-blocking)
     try {
+      // Define notification messages based on face count
+      const notificationMessages = {
+        single: ['I LOVE 😍', 'ATEE 💅', 'Cutie! 😝', 'WOW 🫠'],
+        multiple: ['I LOVE 😍', 'ATEE 💅', 'Cuties! 😝', 'WOW 🫠']
+      }
+
+      // Determine which message set to use
+      const faceCount = detectedFaceCountRef.current
+      const messageSet = faceCount > 1 ? notificationMessages.multiple : notificationMessages.single
+      
+      // Cycle through messages
+      const nextIndex = (notificationMessageIndex + 1) % messageSet.length
+      setNotificationMessageIndex(nextIndex)
+      setCaptureNotificationMessage(messageSet[nextIndex])
+
+      // Play camera snap sound immediately
+      if (cameraSnapAudioRef.current) {
+        cameraSnapAudioRef.current.currentTime = 0
+        cameraSnapAudioRef.current.play().catch((error) => {
+          console.log('Could not play camera snap sound:', error)
+        })
+      }
+
+      // Show capture notification immediately for instant feedback
+      setCaptureNotification(true)
+      setTimeout(() => setCaptureNotification(false), 2000)
+
+      // Increment capture counter immediately
+      captureCounterRef.current += 1
+      localStorage.setItem('captureCounter', captureCounterRef.current.toString())
+
+      // Compress image in background (non-blocking)
       const dataUrl = await compressCanvasToJpeg(canvasRef.current, 0.75)
       
       if (!dataUrl) {
@@ -1378,14 +1716,14 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         console.log('Compressed size:', (dataUrl.length / 1024).toFixed(1), 'KB')
       } catch (e) {
         if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-          console.warn('LocalStorage quota exceeded! Keeping only newest 5 images...')
-          // Keep only the 5 most recent images
-          const recentImages = updatedImages.slice(0, 5)
+          console.warn('LocalStorage quota exceeded! Keeping only newest 50 images...')
+          // Keep only the 50 most recent images
+          const recentImages = updatedImages.slice(0, 50)
           try {
             localStorage.setItem('capturedImages', JSON.stringify(recentImages))
             setCapturedImages(recentImages)
             setImageCount(recentImages.length)
-            console.log('Trimmed to 5 most recent images')
+            console.log('Trimmed to 50 most recent images')
           } catch (e2) {
             console.error('Still unable to save:', e2)
           }
@@ -1397,6 +1735,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       setImageCount(updatedImages.length)
     } catch (error) {
       console.error('Error during capture:', error)
+    } finally {
+      isCapturingRef.current = false
     }
   }
 
@@ -1407,6 +1747,93 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       clickAudioRef.current.play().catch((error) => {
         console.log('Could not play sound:', error)
       })
+    }
+  }
+
+  // Delete all downloaded images
+  const handleDeleteAllImages = () => {
+    playClickSound()
+    setCapturedImages([])
+    setImageCount(0)
+    localStorage.setItem('capturedImages', JSON.stringify([]))
+    setShowStorageLimitModal(false)
+    setShowDeleteConfirm(false)
+    setDownloadsPage(0)
+  }
+
+  // Save all images as ZIP then delete
+  const handleSaveAsZipThenDelete = async () => {
+    playClickSound()
+    setIsSavingZip(true)
+    try {
+      const zip = new JSZip()
+      const folder = zip.folder('hiba_captures')
+
+      // Add each image to the ZIP
+      for (let i = 0; i < capturedImages.length; i++) {
+        const image = capturedImages[i]
+        const base64Data = image.dataUrl.split(',')[1]
+        folder.file(`${image.name}.jpg`, base64Data, { base64: true })
+      }
+
+      // Generate ZIP file
+      const zipBlob = await zip.generateAsync({ type: 'blob' })
+      
+      // Download ZIP file
+      const url = URL.createObjectURL(zipBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `hiba_captures_${Date.now()}.zip`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      // Delete all images after successful download
+      handleDeleteAllImages()
+    } catch (error) {
+      console.error('Error creating ZIP file:', error)
+      alert('Error creating ZIP file. Please try again.')
+    } finally {
+      setIsSavingZip(false)
+    }
+  }
+
+  // Save all images as ZIP without deleting
+  const handleSaveAllAsZip = async () => {
+    playClickSound()
+    setIsSavingZip(true)
+    try {
+      const zip = new JSZip()
+      const folder = zip.folder('hiba_captures')
+
+      // Add each image to the ZIP
+      for (let i = 0; i < capturedImages.length; i++) {
+        const image = capturedImages[i]
+        const base64Data = image.dataUrl.split(',')[1]
+        folder.file(`${image.name}.jpg`, base64Data, { base64: true })
+      }
+
+      // Generate ZIP file
+      const zipBlob = await zip.generateAsync({ type: 'blob' })
+      
+      // Download ZIP file
+      const url = URL.createObjectURL(zipBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `hiba_captures_${Date.now()}.zip`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      // Close modal after successful download
+      setShowSaveAllModal(false)
+    } catch (error) {
+      console.error('Error creating ZIP file:', error)
+      alert('Error creating ZIP file. Please try again.')
+    } finally {
+      setIsSavingZip(false)
     }
   }
 
@@ -1888,7 +2315,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
             zIndex: 9999
           }}
         >
-          Wait for bg image to load fully before clicking anything!
+          Wait for bg img to fully load before clicking anything!
         </div>
       )}
 
@@ -2154,7 +2581,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
           }}
           onMouseDown={(e) => handleMouseDown(e, 'notification', captureNotificationPos)}
         >
-          ✓ Image Captured!
+          {captureNotificationMessage}
         </div>
       )}
 
@@ -2181,7 +2608,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                 borderBottom: dragState?.window === 'vijayOverlay' ? '2px solid #ffffff' : 'none'
               }}
             >
-              <h1>Cam ⋆｡°✩</h1>
+              <h1>Vijay Cam ⋆｡°✩</h1>
               <button 
                 onClick={handleCloseVijayOverlay}
                 style={{
@@ -2214,6 +2641,24 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                       backgroundColor: isWebcamActive ? 'transparent' : '#000000'
                     }}
                   />
+                  
+                  {/* Timer countdown overlay */}
+                  {countdownValue > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '120px',
+                      fontWeight: 'bold',
+                      color: 'white',
+                      textShadow: '0 0 20px rgba(0, 0, 0, 0.8)',
+                      zIndex: 100,
+                      userSelect: 'none'
+                    }}>
+                      {countdownValue}
+                    </div>
+                  )}
                 </div>
 
                 {/* Filter Options Panel */}
@@ -2374,6 +2819,80 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     </label>
                   </div>
 
+                  {/* Nose Piercing Toggle Checkbox */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginTop: '8px',
+                    paddingLeft: '0px'
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="eyeGemToggle"
+                      checked={useEyeGem}
+                      onChange={(e) => {
+                        playClickSound()
+                        setUseEyeGem(e.target.checked)
+                      }}
+                      disabled={!isWebcamActive}
+                      style={{
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        width: '14px',
+                        height: '14px',
+                        opacity: isWebcamActive ? 1 : 0.5
+                      }}
+                    />
+                    <label
+                      htmlFor="eyeGemToggle"
+                      style={{
+                        fontSize: '11px',
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        userSelect: 'none',
+                        opacity: isWebcamActive ? 1 : 0.5
+                      }}
+                    >
+                       Eye Gem ✧
+                    </label>
+                  </div>
+
+                  {/* Nose Stud Toggle Checkbox */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginTop: '8px',
+                    paddingLeft: '0px'
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="noseStudToggle"
+                      checked={useNoseStud}
+                      onChange={(e) => {
+                        playClickSound()
+                        setUseNoseStud(e.target.checked)
+                      }}
+                      disabled={!isWebcamActive}
+                      style={{
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        width: '14px',
+                        height: '14px',
+                        opacity: isWebcamActive ? 1 : 0.5
+                      }}
+                    />
+                    <label
+                      htmlFor="noseStudToggle"
+                      style={{
+                        fontSize: '11px',
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        userSelect: 'none',
+                        opacity: isWebcamActive ? 1 : 0.5
+                      }}
+                    >
+                       Nose Stud
+                    </label>
+                  </div>
+
                   {/* 4 Grid Toggle Checkbox */}
                   <div style={{
                     display: 'flex',
@@ -2410,13 +2929,49 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     </label>
                   </div>
 
+                  {/* Grain Filter Checkbox */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginTop: '8px'
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="grainToggle"
+                      checked={useGrain}
+                      onChange={(e) => {
+                        playClickSound()
+                        setUseGrain(e.target.checked)
+                      }}
+                      disabled={!isWebcamActive}
+                      style={{
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        width: '14px',
+                        height: '14px',
+                        opacity: isWebcamActive ? 1 : 0.5
+                      }}
+                    />
+                    <label
+                      htmlFor="grainToggle"
+                      style={{
+                        fontSize: '11px',
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        userSelect: 'none',
+                        opacity: isWebcamActive ? 1 : 0.5
+                      }}
+                    >
+                      Film Grain
+                    </label>
+                  </div>
+
                   {/* Border Selection */}
                   <div style={{ marginTop: '10px' }}>
                     <div style={{ fontSize: '11px', marginBottom: '5px', opacity: isWebcamActive ? 1 : 0.5 }}>Borders:</div>
                     <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
                       <button
                         onClick={() => {
-                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'malligapoo', 'miffy', 'rajini', 'sari', 'thali']
+                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'malligapoo', 'miffy', 'rajini', 'sari', 'thali', 'chai']
                           const currentIndex = options.indexOf(currentBorder)
                           const newIndex = (currentIndex - 1 + options.length) % options.length
                           setCurrentBorder(options[newIndex])
@@ -2448,11 +3003,12 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                          currentBorder === 'malligapoo' ? 'Malligapoo' :
                          currentBorder === 'miffy' ? 'Miffy' :
                          currentBorder === 'rajini' ? 'Rajini' :
-                         currentBorder === 'sari' ? 'Sari' : 'Thali'}
+                         currentBorder === 'sari' ? 'Sari' :
+                         currentBorder === 'thali' ? 'Thali' : 'Chai'}
                       </span>
                       <button
                         onClick={() => {
-                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'malligapoo', 'miffy', 'rajini', 'sari', 'thali']
+                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'malligapoo', 'miffy', 'rajini', 'sari', 'thali', 'chai']
                           const currentIndex = options.indexOf(currentBorder)
                           const newIndex = (currentIndex + 1) % options.length
                           setCurrentBorder(options[newIndex])
@@ -2479,15 +3035,14 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     </div>
                   </div>
 
-                  {/* Monkey Filter Toggle */}
-                  <div style={{ marginTop: '10px', paddingLeft: '0px' }}>
+                  {/* Vijay Overlay Toggle */}
+                  <div style={{ marginTop: '10px' }}>
                     <input
                       type="checkbox"
-                      id="monkeyFilterToggle"
-                      checked={useMonkeyFilter}
+                      id="vijayToggle"
+                      checked={showVijayImage}
                       onChange={(e) => {
-                        setUseMonkeyFilter(e.target.checked)
-                        if (e.target.checked) setShowVijayImage(false)
+                        setShowVijayImage(e.target.checked)
                         playClickSound()
                       }}
                       disabled={!isWebcamActive}
@@ -2499,7 +3054,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                       }}
                     />
                     <label
-                      htmlFor="monkeyFilterToggle"
+                      htmlFor="vijayToggle"
                       style={{
                         fontSize: '11px',
                         cursor: 'pointer',
@@ -2507,7 +3062,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                         marginLeft: '5px'
                       }}
                     >
-                      Monkey
+                      Vijay
                     </label>
                   </div>
                 </div>
@@ -2527,14 +3082,14 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                 }
               />
 
-              {/* Monkey Expression Instructions */}
-              {useMonkeyFilter && (
+              {/* Vijay Expression Instructions */}
+              {showVijayImage && (
                 <div style={{
                   backgroundColor: '#c0c0c0',
                   border: '1px solid',
                   borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
                   padding: '10px',
-                  marginTop: '-15px',
+                  marginTop: '-130px',
                   marginLeft: '-150px',
                   marginBottom: '10px',
                   fontSize: '11px',
@@ -2542,19 +3097,62 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                   color: '#000000',
                   lineHeight: '1.4',
                   width: '600px',
-                  position: 'relative'
+                  position: 'relative',
+                  boxSizing: 'border-box'
                 }}>
                   <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#000080' }}>
-                    Monkey Expression Tips:
+                    Changing Vijay Tips:
                   </div>
-                  <div style={{ width: '100%' }}>• Try either winking, sticking your tongue out or opening your eyes wide</div>
-                  <div style={{ width: '100%' }}>• To go back to default "thinking" monkey, just blink</div>
-                  <div style={{ width: '100%', textAlign: 'center', fontStyle: 'italic', marginTop: '5px' }}>The monkeys get a bit lazy - sometimes expressions aren't detected properly, just keep trying ☆</div>
-                  
+                  <div style={{ width: '100%' }}>• Try posing with your hand under your chin, give a thumbs up, or throw up a peace sign</div>
+                  <div style={{ width: '100%' }}>• Blink to switch back to Vijay’s "Heart Hands" pose</div>
+                  <div style={{ width: '100%', textAlign: 'center', fontStyle: 'italic', marginTop: '5px' }}>
+                    Thalapathy is a busy man in politics now - sometimes he doesn't detect your gestures, so keep trying! ☆
+                  </div>
+
+                  {/* Disable hand tracking checkbox */}
+                  <div style={{
+                    marginTop: '15px',
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                    padding: '6px 8px',
+                    backgroundColor: '#c0c0c0',
+                    border: '2px solid',
+                    borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: 'fit-content'
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="disableHandTrackingToggle"
+                      checked={disableHandTracking}
+                      onChange={(e) => {
+                        playClickSound()
+                        setDisableHandTracking(e.target.checked)
+                      }}
+                      style={{
+                        cursor: 'pointer',
+                        width: '13px',
+                        height: '13px'
+                      }}
+                    />
+                    <label
+                      htmlFor="disableHandTrackingToggle"
+                      style={{
+                        fontSize: '10px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Don't track hand movements
+                    </label>
+                  </div>
                   {/* Bow decoration */}
                   <img 
-                    src={new URL('./assets/bow.png', import.meta.url).href}
-                    alt="bow"
+                    src={new URL('./assets/bow.png', import.meta.url).href} 
+                    alt="bow" 
                     style={{
                       position: 'absolute',
                       right: '-20px',
@@ -2587,24 +3185,37 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                   ▶ Start
                 </button>
                 <button
-                  onClick={stopWebcam}
-                  disabled={!isWebcamActive}
+                  onClick={() => {
+                    playClickSound()
+                    if (countdownValue > 0) {
+                      // Cancel countdown if active
+                      if (countdownIntervalRef.current) {
+                        clearInterval(countdownIntervalRef.current)
+                        countdownIntervalRef.current = null
+                      }
+                      setCountdownValue(0)
+                    } else {
+                      // Stop webcam if no countdown
+                      stopWebcam()
+                    }
+                  }}
+                  disabled={!isWebcamActive && countdownValue === 0}
                   className="btn btn-secondary"
                   style={{
                     outline: 'none',
-                    color: !isWebcamActive ? '#888888' : '#000080',
+                    color: !isWebcamActive && countdownValue === 0 ? '#888888' : '#000080',
                     fontWeight: 'bold',
-                    opacity: !isWebcamActive ? 0.5 : 1,
-                    cursor: !isWebcamActive ? 'not-allowed' : 'pointer',
-                    backgroundColor: !isWebcamActive ? '#d0d0d0' : '#c0c0c0',
+                    opacity: !isWebcamActive && countdownValue === 0 ? 0.5 : 1,
+                    cursor: !isWebcamActive && countdownValue === 0 ? 'not-allowed' : 'pointer',
+                    backgroundColor: !isWebcamActive && countdownValue === 0 ? '#d0d0d0' : '#c0c0c0',
                     border: '2px solid',
-                    borderColor: !isWebcamActive ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf'
+                    borderColor: !isWebcamActive && countdownValue === 0 ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf'
                   }}
                 >
                   ■ Stop
                 </button>
                 <button
-                  onClick={capturePhoto}
+                  onClick={handleCaptureWithTimer}
                   disabled={!isWebcamActive}
                   className="btn btn-capture"
                   style={{
@@ -2620,20 +3231,94 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                 >
                   ● Capture
                 </button>
+                
+                {/* Timer dropdown button */}
+                <div style={{ position: 'relative', marginLeft: '4px' }}>
+                  <button
+                    onClick={() => {
+                      playClickSound()
+                      setShowTimerDropdown(!showTimerDropdown)
+                    }}
+                    disabled={!isWebcamActive}
+                    className="btn btn-timer"
+                    style={{
+                      outline: 'none',
+                      color: !isWebcamActive ? '#888888' : '#000080',
+                      fontWeight: 'bold',
+                      opacity: !isWebcamActive ? 0.5 : 1,
+                      cursor: !isWebcamActive ? 'not-allowed' : 'pointer',
+                      backgroundColor: !isWebcamActive ? '#d0d0d0' : '#c0c0c0',
+                      border: '2px solid',
+                      borderColor: !isWebcamActive ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf',
+                      minWidth: '60px'
+                    }}
+                  >
+                    ⏱ {timerOption === 'none' ? 'Timer' : timerOption}
+                  </button>
+                  
+                  {/* Dropdown menu */}
+                  {showTimerDropdown && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      backgroundColor: '#c0c0c0',
+                      border: '2px solid',
+                      borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                      minWidth: '70px',
+                      marginTop: '2px',
+                      zIndex: 2000
+                    }}>
+                      {['none', '3s', '5s', '10s'].map((option) => (
+                        <div
+                          key={option}
+                          onClick={() => {
+                            playClickSound()
+                            setTimerOption(option)
+                            setShowTimerDropdown(false)
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                            backgroundColor: timerOption === option ? '#000080' : '#c0c0c0',
+                            color: timerOption === option ? '#ffff00' : '#000080',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            userSelect: 'none',
+                            ':hover': {
+                              backgroundColor: '#000080',
+                              color: '#ffff00'
+                            }
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#000080'
+                            e.target.style.color = '#ffff00'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = timerOption === option ? '#000080' : '#c0c0c0'
+                            e.target.style.color = timerOption === option ? '#ffff00' : '#000080'
+                          }}
+                        >
+                          {option}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => {
                     playClickSound()
                     setShowControls(!showControls)
                   }}
-                  disabled={!showVijayImage && !useMonkeyFilter}
+                  disabled={!showVijayImage}
                   className="btn btn-primary"
                   style={{ 
                     outline: 'none', 
-                    color: !showVijayImage && !useMonkeyFilter ? '#888888' : '#000080', 
+                    color: !showVijayImage ? '#888888' : '#000080', 
                     fontWeight: 'bold',
-                    opacity: !showVijayImage && !useMonkeyFilter ? 0.5 : 1,
-                    cursor: !showVijayImage && !useMonkeyFilter ? 'not-allowed' : 'pointer',
-                    backgroundColor: !showVijayImage && !useMonkeyFilter ? '#d0d0d0' : '#c0c0c0'
+                    opacity: !showVijayImage ? 0.5 : 1,
+                    cursor: !showVijayImage ? 'not-allowed' : 'pointer',
+                    backgroundColor: !showVijayImage ? '#d0d0d0' : '#c0c0c0'
                   }}
                 >
                   ⊙ {showControls ? 'Hide' : 'Show'} Controls
@@ -2702,7 +3387,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
 
                     <div className="control-group">
                       <label>
-                        Offset X: <span className="value">{offsetX}</span>
+                        Move Horizontally: <span className="value">{offsetX}</span>
                       </label>
                       <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
                         <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: '#666', top: '50%' }}></div>
@@ -2720,13 +3405,13 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
 
                     <div className="control-group">
                       <label>
-                        Offset Y: <span className="value">{offsetY}</span>
+                        Move Vertically: <span className="value">{offsetY}</span>
                       </label>
                       <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
                         <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: '#666', top: '50%' }}></div>
                         <input
                           type="range"
-                          min="-150"
+                          min="-400"
                           max="150"
                           value={offsetY}
                           onChange={(e) => setOffsetY(Number(e.target.value))}
@@ -2757,7 +3442,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
 
                     <div className="control-group">
                       <label>
-                        Rotation: <span className="value">{rotation}°</span>
+                        Rotate: <span className="value">{rotation}°</span>
                       </label>
                       <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
                         <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: '#666', top: '50%' }}></div>
@@ -2777,87 +3462,6 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                   </>
                 )}
 
-                {useMonkeyFilter && (
-                  <>
-                    <h3>Monkey Position & Size</h3>
-
-                    <div className="control-group">
-                      <label>
-                        Offset X: <span className="value">{monkeyOffsetX}</span>
-                      </label>
-                      <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
-                        <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: '#666', top: '50%' }}></div>
-                        <input
-                          type="range"
-                          min="-150"
-                          max="150"
-                          value={monkeyOffsetX}
-                          onChange={(e) => setMonkeyOffsetX(Number(e.target.value))}
-                          className="slider"
-                          style={{ position: 'relative', zIndex: 1, width: '100%' }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="control-group">
-                      <label>
-                        Offset Y: <span className="value">{monkeyOffsetY}</span>
-                      </label>
-                      <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
-                        <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: '#666', top: '50%' }}></div>
-                        <input
-                          type="range"
-                          min="-150"
-                          max="150"
-                          value={monkeyOffsetY}
-                          onChange={(e) => setMonkeyOffsetY(Number(e.target.value))}
-                          className="slider"
-                          style={{ position: 'relative', zIndex: 1, width: '100%' }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="control-group">
-                      <label>
-                        Scale: <span className="value">{monkeyScale.toFixed(2)}x</span>
-                      </label>
-                      <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
-                        <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: '#666', top: '50%' }}></div>
-                        <input
-                          type="range"
-                          min="0.5"
-                          max="3"
-                          step="0.1"
-                          value={monkeyScale}
-                          onChange={(e) => setMonkeyScale(Number(e.target.value))}
-                          className="slider"
-                          style={{ position: 'relative', zIndex: 1, width: '100%' }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="control-group">
-                      <label>
-                        Rotation: <span className="value">{monkeyRotation}°</span>
-                      </label>
-                      <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
-                        <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: '#666', top: '50%' }}></div>
-                        <input
-                          type="range"
-                          min="-180"
-                          max="180"
-                          value={monkeyRotation}
-                          onChange={(e) => setMonkeyRotation(Number(e.target.value))}
-                          className="slider"
-                          style={{ position: 'relative', zIndex: 1, width: '100%' }}
-                        />
-                      </div>
-                    </div>
-
-                    <p className="tips">💡 Adjust the controls to change Monkey's position to your liking, then capture!</p>
-                  </>
-                )}
-
 
               </>
             )}
@@ -2869,14 +3473,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
               <button
                 onClick={() => {
                   playClickSound()
-                  setOffsetX(-4)
-                  setOffsetY(-81)
-                  setScale(1)
+                  setOffsetX(-22)
+                  setOffsetY(-289)
+                  setScale(1.6)
                   setRotation(0)
-                  setMonkeyOffsetX(-30)
-                  setMonkeyOffsetY(-26)
-                  setMonkeyScale(1.4)
-                  setMonkeyRotation(0)
                   setBowOffsetX(0)
                   setBowOffsetY(-15)
                   setBowScale(0.2)
@@ -2937,19 +3537,42 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
             onMouseDown={(e) => handleMouseDown(e, 'downloads', downloadsPos)}
           >
             <h1 style={{ margin: '2px 4px', fontSize: '14px', fontWeight: 'bold' }}>Downloads ⋆｡°✩</h1>
-            <button 
-              onClick={handleCloseDownloads}
-              style={{
-                marginLeft: 'auto',
-                padding: '2px 6px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                outline: 'none',
-                backgroundColor: '#d85c5c'
-              }}
-            >
-              ✕
-            </button>
+            <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+              {capturedImages.length > 1 && (
+                <button 
+                  onClick={() => {
+                    playClickSound()
+                    setShowSaveAllModal(true)
+                  }}
+                  style={{
+                    padding: '2px 6px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    outline: 'none',
+                    backgroundColor: '#c0c0c0',
+                    border: '2px solid',
+                    borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                    fontSize: '11px',
+                    color: '#000080'
+                  }}
+                >
+                  💾 Save All
+                </button>
+              )}
+              <button 
+                onClick={handleCloseDownloads}
+                style={{
+                  padding: '2px 6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  outline: 'none',
+                  backgroundColor: '#d85c5c',
+                  color: '#ffffff'
+                }}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* File list */}
@@ -2963,9 +3586,15 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
             gap: '10px'
           }}>
             {(() => {
-              const itemsPerPage = 5
-              const startIdx = downloadsPage * itemsPerPage
-              const endIdx = startIdx + itemsPerPage
+              // Calculate items that fit horizontally (each item ~80px with gap and padding)
+              const downloadWindowWidth = 600
+              const itemWidth = 80 // 70px minWidth + 10px gap
+              const containerPadding = 8 // 4px on each side
+              const availableWidth = downloadWindowWidth - containerPadding
+              const itemsPerRow = Math.max(1, Math.floor(availableWidth / itemWidth))
+              
+              const startIdx = downloadsPage * itemsPerRow
+              const endIdx = startIdx + itemsPerRow
               const pageImages = capturedImages.slice(startIdx, endIdx)
               
               return pageImages.map((image) => (
@@ -3058,7 +3687,11 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                 backgroundColor: downloadsPage === 0 ? '#a0a0a0' : '#c0c0c0',
                 border: '2px solid',
                 borderColor: downloadsPage === 0 ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf',
-                fontSize: '12px'
+                fontSize: '12px',
+                outline: 'none',
+                WebkitAppearance: 'none',
+                boxShadow: 'none',
+                userSelect: 'none'
               }}
             >
               ◄ Prev
@@ -3067,22 +3700,26 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
               fontSize: '12px',
               whiteSpace: 'nowrap'
             }}>
-              {capturedImages.length === 0 ? 'No images' : `Page ${downloadsPage + 1}/${Math.ceil(capturedImages.length / 5)}`}
+              {capturedImages.length === 0 ? 'No images' : `Page ${downloadsPage + 1}/${Math.ceil(capturedImages.length / Math.max(1, Math.floor((600 - 8) / 80)))}`}
             </span>
             <button
               onClick={() => {
                 playClickSound()
                 setDownloadsPage(downloadsPage + 1)
               }}
-              disabled={(downloadsPage + 1) * 5 >= capturedImages.length}
+              disabled={(downloadsPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= capturedImages.length}
               style={{
                 padding: '2px 6px',
-                cursor: (downloadsPage + 1) * 5 >= capturedImages.length ? 'not-allowed' : 'pointer',
+                cursor: (downloadsPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= capturedImages.length ? 'not-allowed' : 'pointer',
                 fontWeight: 'bold',
-                backgroundColor: (downloadsPage + 1) * 5 >= capturedImages.length ? '#a0a0a0' : '#c0c0c0',
+                backgroundColor: (downloadsPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= capturedImages.length ? '#a0a0a0' : '#c0c0c0',
                 border: '2px solid',
-                borderColor: (downloadsPage + 1) * 5 >= capturedImages.length ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf',
-                fontSize: '12px'
+                borderColor: (downloadsPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= capturedImages.length ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf',
+                fontSize: '12px',
+                outline: 'none',
+                WebkitAppearance: 'none',
+                boxShadow: 'none',
+                userSelect: 'none'
               }}
             >
               Next ►
@@ -3375,12 +4012,12 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
           }}>
             {(() => {
               const currentTime = isDraggingSlider 
-                ? (sliderPosition / 100) * (bgMusicRef.current?.duration || 150)
+                ? (sliderPosition / 100) * (audioDuration || 150)
                 : audioCurrentTime
               const minutes = Math.floor(currentTime / 60)
               const seconds = Math.floor(currentTime % 60)
-              const durationMinutes = Math.floor((bgMusicRef.current?.duration || 150) / 60)
-              const durationSeconds = Math.floor((bgMusicRef.current?.duration || 150) % 60)
+              const durationMinutes = Math.floor((audioDuration || 150) / 60)
+              const durationSeconds = Math.floor((audioDuration || 150) % 60)
               return (
                 <span>
                   {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')} / {String(durationMinutes).padStart(2, '0')}:{String(durationSeconds).padStart(2, '0')}
@@ -3477,12 +4114,18 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
               </div>
             ) : (
               (() => {
-                const itemsPerPage = 5
-                const startIdx = trashPage * itemsPerPage
-                const endIdx = startIdx + itemsPerPage
+                // Calculate items that fit horizontally (each item ~80px with gap and padding)
+                const trashWindowWidth = 600
+                const itemWidth = 80 // 70px minWidth + 10px gap
+                const containerPadding = 8 // 4px on each side
+                const availableWidth = trashWindowWidth - containerPadding
+                const itemsPerRow = Math.max(1, Math.floor(availableWidth / itemWidth))
+                
+                const startIdx = trashPage * itemsPerRow
+                const endIdx = startIdx + itemsPerRow
                 const pageImages = trashedImages.slice(startIdx, endIdx)
                 
-                return pageImages.map((image) => (
+                return pageImages.map((image) => ( 
                   <div
                     key={image.id}
                     style={{
@@ -3575,7 +4218,11 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                 backgroundColor: trashPage === 0 ? '#a0a0a0' : '#c0c0c0',
                 border: '2px solid',
                 borderColor: trashPage === 0 ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf',
-                fontSize: '12px'
+                fontSize: '12px',
+                outline: 'none',
+                WebkitAppearance: 'none',
+                boxShadow: 'none',
+                userSelect: 'none'
               }}
             >
               ◄ Prev
@@ -3584,22 +4231,26 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
               fontSize: '12px',
               whiteSpace: 'nowrap'
             }}>
-              {trashedImages.length === 0 ? 'No images' : `Page ${trashPage + 1}/${Math.ceil(trashedImages.length / 5)}`}
+              {trashedImages.length === 0 ? 'No images' : `Page ${trashPage + 1}/${Math.ceil(trashedImages.length / Math.max(1, Math.floor((600 - 8) / 80)))}`}
             </span>
             <button
               onClick={() => {
                 playClickSound()
                 setTrashPage(trashPage + 1)
               }}
-              disabled={(trashPage + 1) * 5 >= trashedImages.length}
+              disabled={(trashPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= trashedImages.length}
               style={{
                 padding: '2px 6px',
-                cursor: (trashPage + 1) * 5 >= trashedImages.length ? 'not-allowed' : 'pointer',
+                cursor: (trashPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= trashedImages.length ? 'not-allowed' : 'pointer',
                 fontWeight: 'bold',
-                backgroundColor: (trashPage + 1) * 5 >= trashedImages.length ? '#a0a0a0' : '#c0c0c0',
+                backgroundColor: (trashPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= trashedImages.length ? '#a0a0a0' : '#c0c0c0',
                 border: '2px solid',
-                borderColor: (trashPage + 1) * 5 >= trashedImages.length ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf',
-                fontSize: '12px'
+                borderColor: (trashPage + 1) * Math.max(1, Math.floor((600 - 8) / 80)) >= trashedImages.length ? '#808080 #dfdfdf #dfdfdf #808080' : '#dfdfdf #808080 #808080 #dfdfdf',
+                fontSize: '12px',
+                outline: 'none',
+                WebkitAppearance: 'none',
+                boxShadow: 'none',
+                userSelect: 'none'
               }}
             >
               Next ►
@@ -4074,7 +4725,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                       borderColor: '#1b9fff #0a4a99 #0a4a99 #1b9fff',
                       textShadow: '1px 1px 1px rgba(0,0,0,0.5)',
                       minWidth: '100px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      outline: 'none',
+                      WebkitAppearance: 'none',
+                      boxShadow: 'none'
                     }}
                   >
                     Save
@@ -4096,7 +4750,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                       borderColor: '#ff4444 #800000 #800000 #ff4444',
                       textShadow: '1px 1px 1px rgba(0,0,0,0.5)',
                       minWidth: '100px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      outline: 'none',
+                      WebkitAppearance: 'none',
+                      boxShadow: 'none'
                     }}
                   >
                     Delete
@@ -4279,8 +4936,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     style={{
                       maxWidth: '100%',
                       maxHeight: '100%',
-                      objectFit: 'contain',
-                      opacity: 0.8
+                      objectFit: 'contain'
                     }}
                   />
 
@@ -4342,7 +4998,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                       borderColor: '#1b9fff #0a4a99 #0a4a99 #1b9fff',
                       textShadow: '1px 1px 1px rgba(0,0,0,0.5)',
                       minWidth: '100px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      outline: 'none',
+                      WebkitAppearance: 'none',
+                      boxShadow: 'none'
                     }}
                   >
                     Restore
@@ -4364,7 +5023,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                       borderColor: '#ff4444 #800000 #800000 #ff4444',
                       textShadow: '1px 1px 1px rgba(0,0,0,0.5)',
                       minWidth: '100px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      outline: 'none',
+                      WebkitAppearance: 'none',
+                      boxShadow: 'none'
                     }}
                   >
                     Delete Forever
@@ -4572,17 +5234,32 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#000000',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            flexDirection: 'column'
           }}>
-            <img 
-              src={GALLERY_PHOTOS[currentPhotoIndex]}
-              alt={`Photo ${currentPhotoIndex + 1}`}
-              style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain'
-              }}
-            />
+            {!galleryImagesLoaded ? (
+              <div style={{
+                color: '#ffff00',
+                textAlign: 'center',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                fontFamily: 'Arial, sans-serif'
+              }}>
+                <div>images loading...</div>
+                <div style={{ marginTop: '8px', fontSize: '16px' }}>⋆｡°✩</div>
+                <div style={{ marginTop: '8px', fontSize: '12px' }}>pls wait</div>
+              </div>
+            ) : (
+              <img 
+                src={GALLERY_PHOTOS[currentPhotoIndex]}
+                alt={`Photo ${currentPhotoIndex + 1}`}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+            )}
           </div>
 
           {/* Status bar */}
@@ -4650,11 +5327,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                   setShowSaveOptions(false)
                 }}
                 style={{
-                  background: 'linear-gradient(to bottom, #dfdfdf, #808080)',
-                  border: '1px solid',
-                  borderColor: '#ffffff #000000 #000000 #ffffff',
+                  backgroundColor: '#d85c5c',
+                  border: 'none',
                   width: '16px',
-                  height: '14px',
+                  height: '16px',
                   padding: '0',
                   cursor: 'pointer',
                   fontSize: '10px',
@@ -4662,10 +5338,11 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  outline: 'none'
+                  outline: 'none',
+                  color: '#ffffff'
                 }}
               >
-                ×
+                ✕
               </button>
             </div>
 
@@ -4849,7 +5526,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
               height: '56px',
               borderRadius: '50%',
               objectFit: 'cover',
-              border: '3px solid rgba(255, 255, 255, 0.6)'
+              border: '3px solid #808080'
             }}
           />
         </button>
@@ -4897,6 +5574,275 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
           </div>
         )}
       </div>
+
+      {/* Storage Limit Modal */}
+      {showStorageLimitModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000
+        }}>
+          <div style={{
+            backgroundColor: '#c0c0c0',
+            border: '2px solid',
+            borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+            boxShadow: '1px 1px 0 #ffffff, -1px -1px 0 #404040, inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080',
+            width: '450px',
+            padding: '10px',
+            fontFamily: 'MS Sans Serif, Arial, sans-serif',
+            fontSize: '11px'
+          }}>
+            {/* Title bar */}
+            <div style={{
+              background: 'linear-gradient(to right, #000080, #1084d7)',
+              color: '#ffff00',
+              padding: '2px 4px',
+              marginBottom: '10px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginLeft: '-10px',
+              marginRight: '-10px',
+              marginTop: '-10px',
+              paddingLeft: '4px',
+              paddingRight: '4px'
+            }}>
+              <div style={{ fontWeight: 'bold' }}>⚠️ Storage Capacity Reached</div>
+              <button
+                onClick={() => setShowStorageLimitModal(false)}
+                style={{
+                  padding: '2px 6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  backgroundColor: '#d85c5c',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#ffffff'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ marginBottom: '15px', lineHeight: '1.6' }}>
+              <p>You have reached the 50 image local storage capacity.</p>
+              <p>Please choose one of the following options:</p>
+            </div>
+
+            {/* Confirmation Dialog for Delete */}
+            {showDeleteConfirm && (
+              <div style={{
+                backgroundColor: '#e0e0e0',
+                border: '1px solid #808080',
+                padding: '10px',
+                marginBottom: '10px',
+                borderRadius: '2px'
+              }}>
+                <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>⚠️ Are you sure?</p>
+                <p style={{ margin: '0 0 10px 0' }}>All images will be lost forever and cannot be recovered.</p>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <button
+                    onClick={() => {
+                      playClickSound()
+                      setShowDeleteConfirm(false)
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                      backgroundColor: '#c0c0c0',
+                      border: '2px solid',
+                      borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                      fontWeight: 'bold',
+                      fontSize: '11px',
+                      color: '#000080'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteAllImages}
+                    style={{
+                      flex: 1,
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                      backgroundColor: '#c0c0c0',
+                      border: '2px solid',
+                      borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                      fontWeight: 'bold',
+                      fontSize: '11px',
+                      color: '#000080'
+                    }}
+                  >
+                    Yes, Delete All
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {!showDeleteConfirm && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button
+                  onClick={() => {
+                    playClickSound()
+                    setShowDeleteConfirm(true)
+                  }}
+                  disabled={isSavingZip}
+                  style={{
+                    padding: '10px',
+                    cursor: isSavingZip ? 'not-allowed' : 'pointer',
+                    backgroundColor: '#c0c0c0',
+                    border: '2px solid',
+                    borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                    fontWeight: 'bold',
+                    fontSize: '11px',
+                    opacity: isSavingZip ? 0.6 : 1,
+                    textAlign: 'left',
+                    paddingLeft: '12px',
+                    color: '#000080'
+                  }}
+                >
+                  🗑️ Delete All Downloads
+                </button>
+                <button
+                  onClick={handleSaveAsZipThenDelete}
+                  disabled={isSavingZip}
+                  style={{
+                    padding: '10px',
+                    cursor: isSavingZip ? 'not-allowed' : 'pointer',
+                    backgroundColor: '#c0c0c0',
+                    border: '2px solid',
+                    borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                    fontWeight: 'bold',
+                    fontSize: '11px',
+                    opacity: isSavingZip ? 0.6 : 1,
+                    textAlign: 'left',
+                    paddingLeft: '12px',
+                    color: '#000080'
+                  }}
+                >
+                  {isSavingZip ? '⏳ Creating ZIP...' : '💾 Save as ZIP then Delete'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Save All Modal */}
+      {showSaveAllModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000
+        }}>
+          <div style={{
+            backgroundColor: '#c0c0c0',
+            border: '2px solid',
+            borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+            boxShadow: '1px 1px 0 #ffffff, -1px -1px 0 #404040, inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080',
+            width: '400px',
+            padding: '10px',
+            fontFamily: 'MS Sans Serif, Arial, sans-serif',
+            fontSize: '11px'
+          }}>
+            {/* Title bar */}
+            <div style={{
+              background: 'linear-gradient(to right, #000080, #1084d7)',
+              color: '#ffff00',
+              padding: '2px 4px',
+              marginBottom: '10px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginLeft: '-10px',
+              marginRight: '-10px',
+              marginTop: '-10px',
+              paddingLeft: '4px',
+              paddingRight: '4px'
+            }}>
+              <div style={{ fontWeight: 'bold' }}>💾 Save All Images</div>
+              <button
+                onClick={() => setShowSaveAllModal(false)}
+                style={{
+                  padding: '2px 6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  backgroundColor: '#d85c5c',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#ffffff'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ marginBottom: '15px', lineHeight: '1.6' }}>
+              <p>Save all images into a folder</p>
+              <p style={{ fontSize: '10px', color: '#333' }}>Your images will be downloaded as a ZIP file containing all {capturedImages.length} image(s).</p>
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', gap: '5px' }}>
+              <button
+                onClick={() => {
+                  playClickSound()
+                  setShowSaveAllModal(false)
+                }}
+                style={{
+                  flex: 1,
+                  padding: '6px 10px',
+                  cursor: 'pointer',
+                  backgroundColor: '#c0c0c0',
+                  border: '2px solid',
+                  borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                  fontWeight: 'bold',
+                  fontSize: '11px',
+                  color: '#000080'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveAllAsZip}
+                disabled={isSavingZip || capturedImages.length === 0}
+                style={{
+                  flex: 1,
+                  padding: '6px 10px',
+                  cursor: isSavingZip || capturedImages.length === 0 ? 'not-allowed' : 'pointer',
+                  backgroundColor: '#c0c0c0',
+                  border: '2px solid',
+                  borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+                  fontWeight: 'bold',
+                  fontSize: '11px',
+                  color: '#000080',
+                  opacity: isSavingZip || capturedImages.length === 0 ? 0.6 : 1
+                }}
+              >
+                {isSavingZip ? '⏳ Creating ZIP...' : '💾 Download ZIP'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Audio elements */}
       <audio ref={clickAudioRef} src={clickSound} />
