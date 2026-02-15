@@ -221,7 +221,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
   })
   const [showVijayImage, setShowVijayImage] = useState(() => {
     const saved = localStorage.getItem('showVijayImage')
-    return saved ? JSON.parse(saved) : true
+    return saved ? JSON.parse(saved) : false
   })
   const [showProfileMenu, setShowProfileMenu] = useState(false)
 
