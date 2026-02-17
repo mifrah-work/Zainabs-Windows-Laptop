@@ -1005,9 +1005,9 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       const g = data[i + 1]
       const b = data[i + 2]
       const gray = (r + g + b) / 3
-      data[i] = Math.min(255, r * 0.7 + gray * 0.3 + 20)
-      data[i + 1] = Math.min(255, g * 0.7 + gray * 0.3 + 5)
-      data[i + 2] = Math.min(255, b * 0.5 + gray * 0.3 - 10)
+      data[i] = Math.min(255, r * 0.75 + gray * 0.25 + 15)
+      data[i + 1] = Math.min(255, g * 0.8 + gray * 0.2 + 8)
+      data[i + 2] = Math.min(255, b * 0.65 + gray * 0.35 - 15)
     }
     offscreenCtx.putImageData(imageData, 0, 0)
 
@@ -1397,9 +1397,9 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         
         // Desaturate slightly
         const gray = (r + g + b) / 3
-        data[i] = Math.min(255, r * 0.7 + gray * 0.3 + 20)        // Red - boost warm tones
-        data[i + 1] = Math.min(255, g * 0.7 + gray * 0.3 + 5)     // Green
-        data[i + 2] = Math.min(255, b * 0.5 + gray * 0.3 - 10)    // Blue - reduce for warmth
+        data[i] = Math.min(255, r * 0.75 + gray * 0.25 + 15)      // Red - subtle red boost
+        data[i + 1] = Math.min(255, g * 0.8 + gray * 0.2 + 8)     // Green - minimal adjustment
+        data[i + 2] = Math.min(255, b * 0.65 + gray * 0.35 - 15)  // Blue - reduction
       }
       ctx.putImageData(imageData, 0, 0)
     }
