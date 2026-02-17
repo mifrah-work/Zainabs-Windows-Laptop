@@ -12,15 +12,15 @@ import bgImage from './assets/bg.png'
 import clickSound from './assets/click.mp3'
 import cameraSnapSound from './assets/camera_snap.mp3'
 import windowsOpeningSound from './assets/windows_opening.mp3'
-import musicEnnamoYeadho from './assets/music/Ennamo_Yeadho.mp3'
-import musicGoogleGoogle from './assets/music/Google_Google.mp3'
-import musicKandaangiKandaangi from './assets/music/Kandaangi_Kandaangi.mp3'
-import musicKangalIrandal from './assets/music/Kangal_Irandal.mp3'
-import musicKannazhaga from './assets/music/Kannazhaga.mp3'
-import musicMunbaeVaa from './assets/music/Munbae_Vaa.mp3'
-import musicOhPenne from './assets/music/Oh_Penne.mp3'
-import musicTujheDekhaTa from './assets/music/Tujhe_Dekha_To.mp3'
-import musicVaseegara from './assets/music/Vaseegara.mp3'
+import musicInAGoodWay from './assets/music/In_A_Good_Way.MP3'
+import musicKabhiKabhiMereDilMein from './assets/music/Kabhi_Kabhi_Mere_Dil_Mein.MP3'
+import musicKahinDoorJabDinDhalJaye from './assets/music/Kahin_Door_Jab_Din_Dhal_Jaye.MP3'
+import musicLagJaGale from './assets/music/Lag_Ja_Gale.MP3'
+import musicLikheJoKhatTujhe from './assets/music/Likhe_Jo_Khat_Tujhe.MP3'
+import musicTumKoDekhaToYehKhayalAaya from './assets/music/Tum_Ko_Dekha_To_Yeh_Khayal_Aaya.MP3'
+import musicHeartToHeart from './assets/music/heart_to_heart.MP3'
+import musicStillLoveYouTodavia from './assets/music/still_love_you_(todavía).MP3'
+import musicWildflower from './assets/music/wildflower.MP3'
 import cursorImg from './assets/cursor.svg'
 import emptyBinImg from './assets/empty_bin.webp'
 import fullBinImg from './assets/Recycle_bin_full.webp'
@@ -29,15 +29,15 @@ import heartFilterImg from './assets/heart_filter.png'
 import profilePicture from './assets/profile_picture.png'
 import windowsStartImg from './assets/windows_start.png'
 import videoFile from './assets/video.mp4'
-import coverEnnamoYeadho from './assets/music/album_covers/Ennamo_Yeadho.png'
-import coverGoogleGoogle from './assets/music/album_covers/Google_Google.png'
-import coverKandaangiKandaangi from './assets/music/album_covers/Kandaangi_Kandaangi.png'
-import coverKangalIrandal from './assets/music/album_covers/Kangal_Irandal.png'
-import coverKannazhaga from './assets/music/album_covers/Kannazhaga.png'
-import coverMunbaeVaa from './assets/music/album_covers/Munbae_Vaa.jpg'
-import coverOhPenne from './assets/music/album_covers/Oh_Penne.png'
-import coverTujheDekhaTa from './assets/music/album_covers/Tujhe_Dekha_To.png'
-import coverVaseegara from './assets/music/album_covers/Vaseegara.png'
+import coverInAGoodWay from './assets/music/album_covers/In_A_Good_Way.png'
+import coverKabhiKabhiMereDilMein from './assets/music/album_covers/Kabhi_Kabhi_Mere_Dil_Mein.png'
+import coverKahinDoorJabDinDhalJaye from './assets/music/album_covers/Kahin_Door_Jab_Din_Dhal_Jaye.png'
+import coverLagJaGale from './assets/music/album_covers/Lag_Ja_Gale.png'
+import coverLikheJoKhatTujhe from './assets/music/album_covers/Likhe_Jo_Khat_Tujhe.png'
+import coverTumKoDekhaToYehKhayalAaya from './assets/music/album_covers/Tum_Ko_Dekha_To_Yeh_Khayal_Aaya.png'
+import coverHeartToHeart from './assets/music/album_covers/heart_to_heart.png'
+import coverStillLoveYouTodavia from './assets/music/album_covers/still_love_you_(todavía).png'
+import coverWildflower from './assets/music/album_covers/wildflower.png'
 import photo1 from './assets/photos/1.png'
 import photo2 from './assets/photos/2.png'
 import photo3 from './assets/photos/3.png'
@@ -53,46 +53,56 @@ import photo11 from './assets/photos/11.png'
 // Playlist data
 const PLAYLIST = [
   {
-    title: 'Google Google',
-    file: musicGoogleGoogle
+    title: 'Lag Ja Gale',
+    file: musicLagJaGale
   },
   {
-    title: 'Ennamo Yeadho',
-    file: musicEnnamoYeadho
+    title: 'Still Love You (Todavia)',
+    file: musicStillLoveYouTodavia
   },
   {
-    title: 'Kandaangi Kandaangi',
-    file: musicKandaangiKandaangi
+    title: 'Tum Ko Dekha To Yeh Khayal Aaya',
+    file: musicTumKoDekhaToYehKhayalAaya
   },
   {
-    title: 'Kangal Irandal',
-    file: musicKangalIrandal
+    title: 'In A Good Way',
+    file: musicInAGoodWay
   },
   {
-    title: 'Kannazhaga',
-    file: musicKannazhaga
+    title: 'Kabhi Kabhi Mere Dil Mein',
+    file: musicKabhiKabhiMereDilMein
   },
   {
-    title: 'Munbae Vaa',
-    file: musicMunbaeVaa
+    title: 'Heart to Heart',
+    file: musicHeartToHeart
   },
   {
-    title: 'Oh Penne',
-    file: musicOhPenne
+    title: 'Kahin Door Jab Din Dhal Jaye',
+    file: musicKahinDoorJabDinDhalJaye
   },
   {
-    title: 'Tujhe Dekha To',
-    file: musicTujheDekhaTa
+    title: 'Wildflower',
+    file: musicWildflower
   },
   {
-    title: 'Vaseegara',
-    file: musicVaseegara
+    title: 'Likhe Jo Khat Tujhe',
+    file: musicLikheJoKhatTujhe
   }
 ]
 import './App.css'
 
 // Music cover images array
-const MUSIC_COVERS = [coverGoogleGoogle, coverEnnamoYeadho, coverKandaangiKandaangi, coverKangalIrandal, coverKannazhaga, coverMunbaeVaa, coverOhPenne, coverTujheDekhaTa, coverVaseegara]
+const MUSIC_COVERS = [
+  coverLagJaGale,
+  coverStillLoveYouTodavia,
+  coverTumKoDekhaToYehKhayalAaya,
+  coverInAGoodWay,
+  coverKabhiKabhiMereDilMein,
+  coverHeartToHeart,
+  coverKahinDoorJabDinDhalJaye,
+  coverWildflower,
+  coverLikheJoKhatTujhe
+]
 
 // Gallery photos array
 const GALLERY_PHOTOS = [photo1, photo2, photo3, photo4, photo5, photo6, photo7, photo8, photo9, photo10, photo11]
@@ -144,6 +154,7 @@ function App() {
   const monkeyEyesWideOpenRef = useRef(null)
   const monkeyCloseLippedSmileRef = useRef(null)
   const borderRef = useRef(null)
+  const hamzaTintCacheRef = useRef(new Map())
   const preloadedBordersRef = useRef({})
   const faceLandmarkerRef = useRef(null)
   const nosePiercingRef = useRef(null)  // Stores eye gem image (left nostril)
@@ -173,15 +184,15 @@ function App() {
   const [rotation, setRotation] = useState(0)
   
   // State for monkey filter positioning
-  const [monkeyOffsetX, setMonkeyOffsetX] = useState(-30)
-  const [monkeyOffsetY, setMonkeyOffsetY] = useState(-26)
-  const [monkeyScale, setMonkeyScale] = useState(1.2)
+  const [monkeyOffsetX, setMonkeyOffsetX] = useState(74)
+  const [monkeyOffsetY, setMonkeyOffsetY] = useState(-6)
+  const [monkeyScale, setMonkeyScale] = useState(1)
   const [monkeyRotation, setMonkeyRotation] = useState(0)
   
   // State for bow filter positioning
   const [bowOffsetX, setBowOffsetX] = useState(0)
   const [bowOffsetY, setBowOffsetY] = useState(10)
-  const [bowScale, setBowScale] = useState(0.2)
+  const [bowScale, setBowScale] = useState(0.18)
   const [bowRotation, setBowRotation] = useState(20)
   
   // State for eye gem positioning (left nostril)
@@ -276,6 +287,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
   const [useGrain, setUseGrain] = useState(() => {
     const saved = localStorage.getItem('useGrain')
     return saved ? JSON.parse(saved) : true
+  })
+  const [useStretch, setUseStretch] = useState(() => {
+    const saved = localStorage.getItem('useStretch')
+    return saved ? JSON.parse(saved) : false
   })
   
   // Timer state
@@ -512,6 +527,11 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
   useEffect(() => {
     localStorage.setItem('useGrain', JSON.stringify(useGrain))
   }, [useGrain])
+
+  // Persist stretch toggle to localStorage
+  useEffect(() => {
+    localStorage.setItem('useStretch', JSON.stringify(useStretch))
+  }, [useStretch])
 
   // Persist timer option to localStorage
   useEffect(() => {
@@ -808,11 +828,14 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     bow: new URL('./assets/borders/bow.png', import.meta.url).href,
     cat: new URL('./assets/borders/cat.png', import.meta.url).href,
     gem_biscuit: new URL('./assets/borders/gem_biscuit.png', import.meta.url).href,
-    malligapoo: new URL('./assets/borders/malligapoo.png', import.meta.url).href,
     miffy: new URL('./assets/borders/miffy.png', import.meta.url).href,
-    rajini: new URL('./assets/borders/rajini.png', import.meta.url).href,
-    sari: new URL('./assets/borders/sari.png', import.meta.url).href,
-    thali: new URL('./assets/borders/thali.png', import.meta.url).href
+    Mochi: new URL('./assets/borders/thali.png', import.meta.url).href,
+    two_monkeys: new URL('./assets/borders/2_monkeys.png', import.meta.url).href,
+    four_monkeys: new URL('./assets/borders/4_monkeys.png', import.meta.url).href,
+    fairy: new URL('./assets/borders/fairy.png', import.meta.url).href,
+    hello_kitty: new URL('./assets/borders/hello_kitty.png', import.meta.url).href,
+    hamza: new URL('./assets/borders/hamza.png', import.meta.url).href,
+    chai: new URL('./assets/borders/chai.png', import.meta.url).href
   }
 
   useEffect(() => {
@@ -966,6 +989,81 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     }
     
     ctx.putImageData(imageData, 0, 0)
+  }
+
+  const getAestheticTintedCanvas = (image, width, height) => {
+    if (!image || width <= 0 || height <= 0) {
+      return null
+    }
+
+    const roundedWidth = Math.max(1, Math.round(width))
+    const roundedHeight = Math.max(1, Math.round(height))
+    const cacheKey = `${roundedWidth}x${roundedHeight}`
+    const cachedCanvas = hamzaTintCacheRef.current.get(cacheKey)
+    if (cachedCanvas) {
+      return cachedCanvas
+    }
+
+    const offscreenCanvas = document.createElement('canvas')
+    offscreenCanvas.width = roundedWidth
+    offscreenCanvas.height = roundedHeight
+    const offscreenCtx = offscreenCanvas.getContext('2d')
+    if (!offscreenCtx) {
+      return null
+    }
+
+    offscreenCtx.drawImage(image, 0, 0, roundedWidth, roundedHeight)
+    const imageData = offscreenCtx.getImageData(0, 0, roundedWidth, roundedHeight)
+    const data = imageData.data
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i]
+      const g = data[i + 1]
+      const b = data[i + 2]
+      const gray = (r + g + b) / 3
+      data[i] = Math.min(255, r * 0.7 + gray * 0.3 + 20)
+      data[i + 1] = Math.min(255, g * 0.7 + gray * 0.3 + 5)
+      data[i + 2] = Math.min(255, b * 0.5 + gray * 0.3 - 10)
+    }
+    offscreenCtx.putImageData(imageData, 0, 0)
+
+    hamzaTintCacheRef.current.set(cacheKey, offscreenCanvas)
+    return offscreenCanvas
+  }
+
+  const getBlackAndWhiteCanvas = (image, width, height) => {
+    if (!image || width <= 0 || height <= 0) {
+      return null
+    }
+
+    const roundedWidth = Math.max(1, Math.round(width))
+    const roundedHeight = Math.max(1, Math.round(height))
+    const cacheKey = `bw-${roundedWidth}x${roundedHeight}`
+    const cachedCanvas = hamzaTintCacheRef.current.get(cacheKey)
+    if (cachedCanvas) {
+      return cachedCanvas
+    }
+
+    const offscreenCanvas = document.createElement('canvas')
+    offscreenCanvas.width = roundedWidth
+    offscreenCanvas.height = roundedHeight
+    const offscreenCtx = offscreenCanvas.getContext('2d')
+    if (!offscreenCtx) {
+      return null
+    }
+
+    offscreenCtx.drawImage(image, 0, 0, roundedWidth, roundedHeight)
+    const imageData = offscreenCtx.getImageData(0, 0, roundedWidth, roundedHeight)
+    const data = imageData.data
+    for (let i = 0; i < data.length; i += 4) {
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
+      data[i] = avg
+      data[i + 1] = avg
+      data[i + 2] = avg
+    }
+    offscreenCtx.putImageData(imageData, 0, 0)
+
+    hamzaTintCacheRef.current.set(cacheKey, offscreenCanvas)
+    return offscreenCanvas
   }
 
   // Draw frame with face detection and overlay
@@ -1387,26 +1485,29 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       }
     }
 
-    // Draw bow filter on right side of head if enabled
-    if (useBowFilter && bowFilterRef.current && allDetectedFaces.length > 0) {
+    const drawBowFilter = (scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0, scaleBow = true) => {
+      if (!useBowFilter || !bowFilterRef.current || allDetectedFaces.length === 0) {
+        return
+      }
+
       try {
-        allDetectedFaces.forEach((faceLandmarks, faceIndex) => {
+        allDetectedFaces.forEach((faceLandmarks) => {
           const topHead = faceLandmarks[10] // Top of head
           const leftEye = faceLandmarks[33]  // Left eye landmark
           const rightEye = faceLandmarks[263] // Right eye landmark
           const rightSide = faceLandmarks[156] // Right temple/forehead
-          
+
           if (!topHead || !rightSide) {
             return
           }
-          
+
           const { pixelX: headX, pixelY: headY } = normalizedToCanvasCoordinates(
             topHead.x,
             topHead.y,
             canvas.width,
             canvas.height
           )
-          
+
           const { pixelX: rightX, pixelY: rightY } = normalizedToCanvasCoordinates(
             rightSide.x,
             rightSide.y,
@@ -1415,7 +1516,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
           )
 
           // Calculate dynamic scale based on face size (proximity to camera)
-          let dynamicScale = 0.15
+          let dynamicScale = 0.07
           if (leftEye && rightEye) {
             const eyeDistance = Math.sqrt(
               Math.pow(rightEye.x - leftEye.x, 2) + 
@@ -1423,17 +1524,24 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
             )
             const referenceEyeDistance = 0.15
             const proximityRatio = eyeDistance / referenceEyeDistance
-            dynamicScale = bowScale * proximityRatio
-            dynamicScale = Math.max(0.08, Math.min(0.25, dynamicScale))
+            dynamicScale = bowScale * proximityRatio * 0.7
+            dynamicScale = Math.max(0.02, Math.min(0.14, dynamicScale))
           }
 
           const bowImg = bowFilterRef.current
-          const bowWidth = bowImg.width * dynamicScale
-          const bowHeight = bowImg.height * dynamicScale
+          const bowWidth = bowImg.width * dynamicScale * (scaleBow ? scaleX : 1)
+          const bowHeight = bowImg.height * dynamicScale * (scaleBow ? scaleY : 1)
+
+          const transformedHeadX = headX * scaleX + offsetX
+          const transformedHeadY = headY * scaleY + offsetY
+          const transformedRightX = rightX * scaleX + offsetX
+          const transformedRightY = rightY * scaleY + offsetY
+          const transformedOffsetX = bowOffsetX * (scaleBow ? scaleX : 1)
+          const transformedOffsetY = bowOffsetY * (scaleBow ? scaleY : 1)
 
           // Position on right side of head, slightly above
-          const bowX = rightX + bowOffsetX - bowWidth / 2
-          const bowY = headY + bowOffsetY - bowHeight / 2
+          const bowX = transformedRightX + transformedOffsetX - bowWidth / 2
+          const bowY = transformedHeadY + transformedOffsetY - bowHeight / 2
 
           ctx.save()
           ctx.globalAlpha = 1
@@ -1451,6 +1559,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       } catch (error) {
         console.error('Bow filter rendering error:', error)
       }
+    }
+
+    if (!useStretch) {
+      drawBowFilter()
     }
 
     // Draw eye gem on left side of nose if enabled
@@ -1573,9 +1685,11 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
     // Draw border overlay if one is selected
     if (currentBorder !== 'none' && borderRef.current) {
       // Skip drawing non-thali borders here if in 4-grid mode (they'll be drawn on full frame or specific grids after tiling)
-      const shouldSkipForGridMode = use4Grid && currentBorder !== 'thali' && currentBorder !== 'cat'
+      const shouldSkipForGridMode = use4Grid && currentBorder !== 'Mochi' && currentBorder !== 'cat' && currentBorder !== 'chai'
       
       if (!shouldSkipForGridMode) {
+        const shouldDeferStretchBorder = useStretch && ['gem_biscuit', 'miffy', 'four_monkeys', 'hello_kitty'].includes(currentBorder)
+        if (!shouldDeferStretchBorder) {
         const borderImg = borderRef.current
         let borderX = 0
         let borderY = 0
@@ -1592,17 +1706,45 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         }
         
         // Special handling for thali - position at bottom of webcam
-        if (currentBorder === 'thali') {
+        if (currentBorder === 'Mochi') {
           // Position thali at the bottom center of webcam
-          borderWidth = canvas.width * 0.8 // Make it bigger
+          borderWidth = canvas.width * 0.35 // Make it bigger
           borderHeight = canvas.height * 0.35
           borderX = (canvas.width - borderWidth) / 2 // Center horizontally
-          borderY = canvas.height - borderHeight + 80 // Position even lower at bottom of canvas
+          borderY = canvas.height - borderHeight + 10 // Position even lower at bottom of canvas
         }
         
+        // Special handling for hamza - position on right of webcam
+        if (currentBorder === 'hamza') {
+          // Position hamza on the right side of webcam
+          borderWidth = canvas.width * 0.8
+          borderHeight = canvas.height * 0.9
+          borderX = canvas.width - borderWidth - -300 // Moved to right
+          borderY = canvas.height - borderHeight + 200 // Moved further down
+        }
+        
+        // Special handling for chai - position at bottom of webcam
+        if (currentBorder === 'chai') {
+          // Position chai at the bottom center of webcam
+          borderWidth = canvas.width * 0.3
+          borderHeight = canvas.height * 0.4
+          borderX = (canvas.width - borderWidth) / 2 // Center horizontally
+          borderY = canvas.height - borderHeight + 40 // Position even lower at bottom of canvas
+        }
+        
+        const shouldTintHamza = currentBorder === 'hamza' && currentFilter === 'aesthetic'
+        const shouldBwHamza = currentBorder === 'hamza' && currentFilter === 'blackAndWhite'
+        const hamzaSource = shouldTintHamza
+          ? getAestheticTintedCanvas(borderImg, borderWidth, borderHeight)
+          : shouldBwHamza
+            ? getBlackAndWhiteCanvas(borderImg, borderWidth, borderHeight)
+            : borderImg
         ctx.globalAlpha = borderOpacity
-        ctx.drawImage(borderImg, borderX, borderY, borderWidth, borderHeight)
+        if (hamzaSource) {
+          ctx.drawImage(hamzaSource, borderX, borderY, borderWidth, borderHeight)
+        }
         ctx.globalAlpha = 1.0
+        }
       }
     }
 
@@ -1660,7 +1802,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
       ctx.fillRect(canvas.width - frameWidth / 2, 0, frameWidth / 2, canvas.height)
       
       // Draw non-thali borders on the full frame if selected
-      if (currentBorder !== 'none' && currentBorder !== 'thali' && currentBorder !== 'cat' && borderRef.current) {
+      if (currentBorder !== 'none' && currentBorder !== 'Mochi' && currentBorder !== 'cat' && currentBorder !== 'hamza' && currentBorder !== 'four_monkeys' && currentBorder !== 'hello_kitty' && currentBorder !== 'fairy' && currentBorder !== 'chai' && borderRef.current) {
         const borderImg = borderRef.current
         let borderWidth = canvas.width
         let borderHeight = canvas.height
@@ -1668,7 +1810,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         let borderY = 0
         
         // Scale up certain borders to 1.1x only in 4-grid view
-        const scaleBorders = ['malligapoo', 'miffy', 'gem_biscuit', 'sari']
+        const scaleBorders = ['miffy', 'gem_biscuit']
         if (scaleBorders.includes(currentBorder)) {
           borderWidth = canvas.width * 1.1
           borderHeight = canvas.height * 1.1
@@ -1681,6 +1823,21 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         ctx.globalAlpha = 1.0
       }
       
+      // Draw 2_monkeys when 4_monkeys is selected in 4-grid mode
+      if (currentBorder === 'four_monkeys' && borderMap.two_monkeys) {
+        try {
+          const twoMonkeysImg = new Image()
+          twoMonkeysImg.src = borderMap.two_monkeys
+          const borderWidth = canvas.width
+          const borderHeight = canvas.height
+          ctx.globalAlpha = 1
+          ctx.drawImage(twoMonkeysImg, 0, 0, borderWidth, borderHeight)
+          ctx.globalAlpha = 1.0
+        } catch (error) {
+          console.error('Error drawing 2_monkeys:', error)
+        }
+      }
+      
       // Draw cat only in bottom-left grid if selected
       if (currentBorder === 'cat' && borderRef.current) {
         const borderImg = borderRef.current
@@ -1689,6 +1846,161 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         ctx.globalAlpha = 1
         ctx.drawImage(borderImg, bottomLeftX, bottomLeftY, quarterWidth, quarterHeight)
         ctx.globalAlpha = 1.0
+      }
+      
+      // Draw hamza in all 4 grids if selected
+      if (currentBorder === 'hamza' && borderRef.current) {
+        const borderImg = borderRef.current
+        const hamzaWidth = quarterWidth * 0.6
+        const hamzaHeight = quarterHeight * 0.7
+        const shouldTintHamza = currentFilter === 'aesthetic'
+        const shouldBwHamza = currentFilter === 'blackAndWhite'
+        const hamzaSource = shouldTintHamza
+          ? getAestheticTintedCanvas(borderImg, hamzaWidth, hamzaHeight)
+          : shouldBwHamza
+            ? getBlackAndWhiteCanvas(borderImg, hamzaWidth, hamzaHeight)
+            : borderImg
+        
+        // Calculate position: bottom-right of each quadrant, moved more to the right
+        const hamzaOffsetX = quarterWidth - hamzaWidth + 100
+        const hamzaOffsetY = quarterHeight - hamzaHeight + 50
+        
+        // Top-left quadrant
+        ctx.globalAlpha = 1
+        if (hamzaSource) {
+          ctx.drawImage(hamzaSource, hamzaOffsetX, hamzaOffsetY, hamzaWidth, hamzaHeight)
+        }
+        
+        // Top-right quadrant
+        if (hamzaSource) {
+          ctx.drawImage(hamzaSource, quarterWidth + hamzaOffsetX, hamzaOffsetY, hamzaWidth, hamzaHeight)
+        }
+        
+        // Bottom-left quadrant
+        if (hamzaSource) {
+          ctx.drawImage(hamzaSource, hamzaOffsetX, quarterHeight + hamzaOffsetY, hamzaWidth, hamzaHeight)
+        }
+        
+        // Bottom-right quadrant
+        if (hamzaSource) {
+          ctx.drawImage(hamzaSource, quarterWidth + hamzaOffsetX, quarterHeight + hamzaOffsetY, hamzaWidth, hamzaHeight)
+        }
+        
+        ctx.globalAlpha = 1.0
+      }
+      
+      // Draw hello_kitty in top-left corner of all 4 grids if selected
+      if (currentBorder === 'hello_kitty' && borderRef.current) {
+        const borderImg = borderRef.current
+        
+        // Use original image dimensions for hello_kitty (scaled up)
+        const helloKittyWidth = borderImg.width * 0.7
+        const helloKittyHeight = borderImg.height * 0.7
+        
+        // Top-left position for each quadrant
+        const helloKittyOffsetX = 10
+        const helloKittyOffsetY = 10
+        
+        // Top-left quadrant
+        ctx.globalAlpha = 1
+        ctx.drawImage(borderImg, helloKittyOffsetX, helloKittyOffsetY, helloKittyWidth, helloKittyHeight)
+        
+        // Top-right quadrant
+        ctx.drawImage(borderImg, quarterWidth + helloKittyOffsetX, helloKittyOffsetY, helloKittyWidth, helloKittyHeight)
+        
+        // Bottom-left quadrant
+        ctx.drawImage(borderImg, helloKittyOffsetX, quarterHeight + helloKittyOffsetY, helloKittyWidth, helloKittyHeight)
+        
+        // Bottom-right quadrant
+        ctx.drawImage(borderImg, quarterWidth + helloKittyOffsetX, quarterHeight + helloKittyOffsetY, helloKittyWidth, helloKittyHeight)
+        
+        ctx.globalAlpha = 1.0
+      }
+      
+      // Draw fairy in bottom-left corner of all 4 grids if selected
+      if (currentBorder === 'fairy' && borderRef.current) {
+        const borderImg = borderRef.current
+        
+        // Fairy scaled down
+        const fairyWidth = borderImg.width * 0.5
+        const fairyHeight = borderImg.height * 0.5
+        
+        // Bottom-left position for each quadrant
+        const fairyOffsetX = 10
+        const fairyOffsetY = quarterHeight - fairyHeight - 10
+        
+        // Top-left quadrant
+        ctx.globalAlpha = 1
+        ctx.drawImage(borderImg, fairyOffsetX, fairyOffsetY, fairyWidth, fairyHeight)
+        
+        // Top-right quadrant
+        ctx.drawImage(borderImg, quarterWidth + fairyOffsetX, fairyOffsetY, fairyWidth, fairyHeight)
+        
+        // Bottom-left quadrant
+        ctx.drawImage(borderImg, fairyOffsetX, quarterHeight + fairyOffsetY, fairyWidth, fairyHeight)
+        
+        // Bottom-right quadrant
+        ctx.drawImage(borderImg, quarterWidth + fairyOffsetX, quarterHeight + fairyOffsetY, fairyWidth, fairyHeight)
+        
+        ctx.globalAlpha = 1.0
+      }
+    }
+
+    if (useStretch) {
+      const tempCanvas = document.createElement('canvas')
+      tempCanvas.width = canvas.width
+      tempCanvas.height = canvas.height
+      const tempCtx = tempCanvas.getContext('2d')
+      if (tempCtx) {
+        tempCtx.drawImage(canvas, 0, 0)
+        const halfWidth = canvas.width / 2
+        const stretchScaleY = 1.4
+        const stretchedHeight = canvas.height * stretchScaleY
+        const offsetY = (canvas.height - stretchedHeight) / 2
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height, 0, offsetY, halfWidth, stretchedHeight)
+        ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height, halfWidth, offsetY, halfWidth, stretchedHeight)
+
+        drawBowFilter(0.5, stretchScaleY, 0, offsetY, false)
+        drawBowFilter(0.5, stretchScaleY, halfWidth, offsetY, false)
+
+        if (borderRef.current && ['gem_biscuit', 'miffy', 'four_monkeys'].includes(currentBorder)) {
+          let borderImg = borderRef.current
+          if (currentBorder === 'four_monkeys' && borderMap.two_monkeys) {
+            const twoMonkeysImg = new Image()
+            twoMonkeysImg.src = borderMap.two_monkeys
+            borderImg = twoMonkeysImg
+          }
+          let borderX = 0
+          let borderY = 0
+          let borderWidth = canvas.width
+          let borderHeight = canvas.height
+
+          // Scale miffy to 1.2x in normal view (not 4-grid)
+          if (!use4Grid && currentBorder === 'miffy') {
+            borderWidth = canvas.width * 1.01
+            borderHeight = canvas.height * 1.01
+            borderX = (canvas.width - borderWidth) / 2
+            borderY = (canvas.height - borderHeight) / 2
+          }
+
+          ctx.globalAlpha = 1
+          ctx.drawImage(borderImg, borderX, borderY, borderWidth, borderHeight)
+          ctx.globalAlpha = 1.0
+        }
+
+        if (borderRef.current && currentBorder === 'hello_kitty') {
+          const borderImg = borderRef.current
+          const borderY = 20
+          const borderWidth = canvas.width / 2
+          const borderHeight = canvas.height
+
+          ctx.globalAlpha = 1
+          ctx.drawImage(borderImg, 0, borderY, borderWidth, borderHeight)
+          ctx.drawImage(borderImg, borderWidth, borderY, borderWidth, borderHeight)
+          ctx.globalAlpha = 1.0
+        }
       }
     }
 
@@ -1706,7 +2018,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
         cancelAnimationFrame(animationIdRef.current)
       }
     }
-  }, [isWebcamActive, offsetX, offsetY, scale, rotation, monkeyOffsetX, monkeyOffsetY, monkeyScale, monkeyRotation, bowOffsetX, bowOffsetY, bowScale, bowRotation, eyeGemOffsetX, eyeGemOffsetY, eyeGemScale, eyeGemRotation, noseStudOffsetX, noseStudOffsetY, noseStudScale, noseStudRotation, currentFilter, use4Grid, useGrain, useHeartFilter, useMonkeyFilter, useBowFilter, useEyeGem, useNoseStud, currentBorder, showVijayImage, disableFaceTracking])
+  }, [isWebcamActive, offsetX, offsetY, scale, rotation, monkeyOffsetX, monkeyOffsetY, monkeyScale, monkeyRotation, bowOffsetX, bowOffsetY, bowScale, bowRotation, eyeGemOffsetX, eyeGemOffsetY, eyeGemScale, eyeGemRotation, noseStudOffsetX, noseStudOffsetY, noseStudScale, noseStudRotation, currentFilter, use4Grid, useGrain, useStretch, useHeartFilter, useMonkeyFilter, useBowFilter, useEyeGem, useNoseStud, currentBorder, showVijayImage, disableFaceTracking])
 
   // Preload gallery images and auto-scroll
   useEffect(() => {
@@ -1989,6 +2301,35 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
   // Handle desktop icon click
   const handleDesktopIconClick = () => {
     playClickSound()
+  }
+
+  const colorOptions = ['normal', 'blackAndWhite', 'aesthetic']
+  const colorLabels = {
+    normal: 'Normal',
+    blackAndWhite: 'B&W',
+    aesthetic: 'Tint'
+  }
+  const viewOptions = ['normal', 'grid', 'stretch']
+  const viewLabels = {
+    normal: 'Normal',
+    grid: '4 Grid',
+    stretch: 'Double'
+  }
+  const currentView = use4Grid ? 'grid' : useStretch ? 'stretch' : 'normal'
+  const stepOption = (options, current, direction) => {
+    const currentIndex = options.indexOf(current)
+    const safeIndex = currentIndex === -1 ? 0 : currentIndex
+    return options[(safeIndex + direction + options.length) % options.length]
+  }
+  const handleColorStep = (direction) => {
+    playClickSound()
+    setCurrentFilter(stepOption(colorOptions, currentFilter, direction))
+  }
+  const handleViewStep = (direction) => {
+    playClickSound()
+    const nextView = stepOption(viewOptions, currentView, direction)
+    setUse4Grid(nextView === 'grid')
+    setUseStretch(nextView === 'stretch')
   }
 
   // Handle Downloads folder click
@@ -2599,14 +2940,15 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                 transition: 'transform 0.1s'
               }}>📷</div>
               <div style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 color: '#ffff00',
                 textShadow: '2px 2px 3px black',
                 fontFamily: 'Arial, sans-serif',
                 fontWeight: 'bold',
                 backgroundColor: 'rgba(0, 0, 139, 0.5)',
                 padding: '2px 6px',
-                borderRadius: '3px'
+                borderRadius: '3px',
+                whiteSpace: 'nowrap'
               }}>Zainab's Cam</div>
             </div>
 
@@ -2809,80 +3151,70 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     marginBottom: '5px',
                     color: '#000080'
                   }}>
-                    Filters:
+                    Colour:
                   </div>
-                  <button
-                    onClick={() => {
-                      playClickSound()
-                      setCurrentFilter('normal')
-                    }}
-                    disabled={!isWebcamActive}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: currentFilter === 'normal' ? '#000080' : isWebcamActive ? '#c0c0c0' : '#a0a0a0',
-                      color: currentFilter === 'normal' ? 'white' : isWebcamActive ? 'black' : '#606060',
-                      border: '1px solid',
-                      borderColor: currentFilter === 'normal' ? '#000080' : isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
-                      cursor: isWebcamActive ? 'pointer' : 'not-allowed',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      outline: 'none',
-                      opacity: isWebcamActive ? 1 : 0.5
-                    }}
-                  >
-                    Normal
-                  </button>
-                  <button
-                    onClick={() => {
-                      playClickSound()
-                      setCurrentFilter('blackAndWhite')
-                    }}
-                    disabled={!isWebcamActive}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: currentFilter === 'blackAndWhite' ? '#000080' : isWebcamActive ? '#c0c0c0' : '#a0a0a0',
-                      color: currentFilter === 'blackAndWhite' ? 'white' : isWebcamActive ? 'black' : '#606060',
-                      border: '1px solid',
-                      borderColor: currentFilter === 'blackAndWhite' ? '#000080' : isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
-                      cursor: isWebcamActive ? 'pointer' : 'not-allowed',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      outline: 'none',
-                      opacity: isWebcamActive ? 1 : 0.5
-                    }}
-                  >
-                    B&W
-                  </button>
-                  <button
-                    onClick={() => {
-                      playClickSound()
-                      setCurrentFilter('aesthetic')
-                    }}
-                    disabled={!isWebcamActive}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: currentFilter === 'aesthetic' ? '#8b4789' : isWebcamActive ? '#c0c0c0' : '#a0a0a0',
-                      color: currentFilter === 'aesthetic' ? 'white' : isWebcamActive ? 'black' : '#606060',
-                      border: '1px solid',
-                      borderColor: currentFilter === 'aesthetic' ? '#8b4789' : isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
-                      cursor: isWebcamActive ? 'pointer' : 'not-allowed',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      outline: 'none',
-                      opacity: isWebcamActive ? 1 : 0.5
-                    }}
-                  >
-                    Tint
-                  </button>
+                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    <button
+                      onClick={() => handleColorStep(-1)}
+                      disabled={!isWebcamActive}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        padding: '0',
+                        fontSize: '10px',
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        backgroundColor: isWebcamActive ? '#c0c0c0' : '#a0a0a0',
+                        border: '2px solid',
+                        borderColor: isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        opacity: isWebcamActive ? 1 : 0.5,
+                        outline: 'none',
+                        boxShadow: 'none'
+                      }}
+                    >
+                      ◀
+                    </button>
+                    <span style={{ fontSize: '11px', minWidth: '60px', textAlign: 'center' }}>
+                      {colorLabels[currentFilter] || 'Normal'}
+                    </span>
+                    <button
+                      onClick={() => handleColorStep(1)}
+                      disabled={!isWebcamActive}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        padding: '0',
+                        fontSize: '10px',
+                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                        backgroundColor: isWebcamActive ? '#c0c0c0' : '#a0a0a0',
+                        border: '2px solid',
+                        borderColor: isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        opacity: isWebcamActive ? 1 : 0.5,
+                        outline: 'none',
+                        boxShadow: 'none'
+                      }}
+                    >
+                      ▶
+                    </button>
+                  </div>
 
+                  <div style={{
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    marginTop: '8px',
+                    color: '#000080'
+                  }}>
+                    Add-Ons ☆
+                  </div>
                   {/* Heart Filter Toggle Checkbox */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    marginTop: '8px',
-                    paddingTop: '8px',
-                    borderTop: '1px solid #808080'
+                    marginTop: '5px'
                   }}>
                     <input
                       type="checkbox"
@@ -2946,7 +3278,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                         opacity: isWebcamActive ? 1 : 0.5
                       }}
                     >
-                      Bow 𝜗𝜚
+                      Bow ౨ৎ
                     </label>
                   </div>
 
@@ -2983,7 +3315,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                         opacity: isWebcamActive ? 1 : 0.5
                       }}
                     >
-                      Eye Gem ✧
+                      Eye Gem ⟡
                     </label>
                   </div>
 
@@ -3024,42 +3356,6 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     </label>
                   </div>
 
-                  {/* 4 Grid Toggle Checkbox */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginTop: '8px'
-                  }}>
-                    <input
-                      type="checkbox"
-                      id="fourGridToggle"
-                      checked={use4Grid}
-                      onChange={(e) => {
-                        playClickSound()
-                        setUse4Grid(e.target.checked)
-                      }}
-                      disabled={!isWebcamActive}
-                      style={{
-                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
-                        width: '14px',
-                        height: '14px',
-                        opacity: isWebcamActive ? 1 : 0.5
-                      }}
-                    />
-                    <label
-                      htmlFor="fourGridToggle"
-                      style={{
-                        fontSize: '11px',
-                        cursor: isWebcamActive ? 'pointer' : 'not-allowed',
-                        userSelect: 'none',
-                        opacity: isWebcamActive ? 1 : 0.5
-                      }}
-                    >
-                      4 Grid View
-                    </label>
-                  </div>
-
                   {/* Film Grain Toggle Checkbox */}
                   <div style={{
                     display: 'flex',
@@ -3096,13 +3392,65 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     </label>
                   </div>
 
+                  {/* View Selector */}
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ fontSize: '11px', marginBottom: '5px', color: '#000080', fontWeight: 'bold' }}>View:</div>
+                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                      <button
+                        onClick={() => handleViewStep(-1)}
+                        disabled={!isWebcamActive}
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          padding: '0',
+                          fontSize: '10px',
+                          cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                          backgroundColor: isWebcamActive ? '#c0c0c0' : '#a0a0a0',
+                          border: '2px solid',
+                          borderColor: isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
+                          color: '#ffffff',
+                          fontWeight: 'bold',
+                          opacity: isWebcamActive ? 1 : 0.5,
+                          outline: 'none',
+                          boxShadow: 'none'
+                        }}
+                      >
+                        ◀
+                      </button>
+                      <span style={{ fontSize: '11px', minWidth: '60px', textAlign: 'center' }}>
+                        {viewLabels[currentView] || 'Normal'}
+                      </span>
+                      <button
+                        onClick={() => handleViewStep(1)}
+                        disabled={!isWebcamActive}
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          padding: '0',
+                          fontSize: '10px',
+                          cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                          backgroundColor: isWebcamActive ? '#c0c0c0' : '#a0a0a0',
+                          border: '2px solid',
+                          borderColor: isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
+                          color: '#ffffff',
+                          fontWeight: 'bold',
+                          opacity: isWebcamActive ? 1 : 0.5,
+                          outline: 'none',
+                          boxShadow: 'none'
+                        }}
+                      >
+                        ▶
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Border Selection */}
                   <div style={{ marginTop: '10px' }}>
-                    <div style={{ fontSize: '11px', marginBottom: '5px', opacity: isWebcamActive ? 1 : 0.5 }}>Borders:</div>
+                    <div style={{ fontSize: '11px', marginBottom: '5px', color: '#000080', fontWeight: 'bold' }}>Borders:</div>
                     <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
                       <button
                         onClick={() => {
-                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'malligapoo', 'miffy', 'rajini', 'sari', 'thali']
+                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'miffy', 'Mochi', 'four_monkeys', 'fairy', 'hello_kitty', 'hamza', 'chai']
                           const currentIndex = options.indexOf(currentBorder)
                           const newIndex = (currentIndex - 1 + options.length) % options.length
                           setCurrentBorder(options[newIndex])
@@ -3118,27 +3466,31 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                           backgroundColor: isWebcamActive ? '#c0c0c0' : '#a0a0a0',
                           border: '2px solid',
                           borderColor: isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
-                          color: '#000080',
+                          color: '#ffffff',
                           fontWeight: 'bold',
                           opacity: isWebcamActive ? 1 : 0.5,
-                          outline: 'none'
+                          outline: 'none',
+                          boxShadow: 'none'
                         }}
                       >
-                        &lt;
+                        ◀
                       </button>
-                      <span style={{ fontSize: '11px', minWidth: '60px', textAlign: 'center' }}>
+                      <span style={{ fontSize: (currentBorder === 'gem_biscuit' || currentBorder === 'four_monkeys') ? '9px' : '11px', minWidth: '60px', textAlign: 'center' }}>
                         {currentBorder === 'none' ? 'None' :
                          currentBorder === 'bow' ? 'Bow' :
-                         currentBorder === 'cat' ? 'Cat' :
-                         currentBorder === 'gem_biscuit' ? 'Gem Biscuit' :
-                         currentBorder === 'malligapoo' ? 'Malligapoo' :
+                         currentBorder === 'cat' ? 'Snoopy' :
+                         currentBorder === 'gem_biscuit' ? 'Prince Biscuit' :
                          currentBorder === 'miffy' ? 'Miffy' :
-                         currentBorder === 'rajini' ? 'Rajini' :
-                         currentBorder === 'sari' ? 'Sari' : 'Thali'}
+                         currentBorder === 'Mochi' ? 'Mochi' :
+                         currentBorder === 'four_monkeys' ? 'Monkey Meme' :
+                         currentBorder === 'fairy' ? 'Fairy' :
+                         currentBorder === 'hello_kitty' ? 'Hello Kitty' :
+                         currentBorder === 'hamza' ? 'Hamza' :
+                         currentBorder === 'chai' ? 'Chai' : 'None'}
                       </span>
                       <button
                         onClick={() => {
-                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'malligapoo', 'miffy', 'rajini', 'sari', 'thali']
+                          const options = ['none', 'bow', 'cat', 'gem_biscuit', 'miffy', 'Mochi', 'four_monkeys', 'fairy', 'hello_kitty', 'hamza', 'chai']
                           const currentIndex = options.indexOf(currentBorder)
                           const newIndex = (currentIndex + 1) % options.length
                           setCurrentBorder(options[newIndex])
@@ -3154,13 +3506,14 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                           backgroundColor: isWebcamActive ? '#c0c0c0' : '#a0a0a0',
                           border: '2px solid',
                           borderColor: isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
-                          color: '#000080',
+                          color: '#ffffff',
                           fontWeight: 'bold',
                           opacity: isWebcamActive ? 1 : 0.5,
-                          outline: 'none'
+                          outline: 'none',
+                          boxShadow: 'none'
                         }}
                       >
-                        &gt;
+                        ▶
                       </button>
                     </div>
                   </div>
@@ -3196,6 +3549,40 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                       Monkey
                     </label>
                   </div>
+
+                  {/* Reset Controls Button */}
+                  <button
+                    onClick={() => {
+                      playClickSound()
+                      setCurrentFilter('normal')
+                      setCurrentBorder('none')
+                      setUseHeartFilter(false)
+                      setUseBowFilter(false)
+                      setUseEyeGem(false)
+                      setUseNoseStud(false)
+                      setUseGrain(true)
+                      setUse4Grid(false)
+                      setUseStretch(false)
+                      setUseMonkeyFilter(true)
+                    }}
+                    disabled={!isWebcamActive}
+                    style={{
+                      marginTop: '12px',
+                      padding: '6px 12px',
+                      backgroundColor: isWebcamActive ? '#c0c0c0' : '#a0a0a0',
+                      color: '#000080',
+                      border: '1px solid',
+                      borderColor: isWebcamActive ? '#dfdfdf #808080 #808080 #dfdfdf' : '#808080 #dfdfdf #dfdfdf #808080',
+                      cursor: isWebcamActive ? 'pointer' : 'not-allowed',
+                      fontWeight: 'bold',
+                      fontSize: '10px',
+                      outline: 'none',
+                      opacity: isWebcamActive ? 1 : 0.5,
+                      width: '100%'
+                    }}
+                  >
+                    Reset Controls
+                  </button>
                 </div>
               </div>
 
@@ -3220,7 +3607,7 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                   border: '1px solid',
                   borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
                   padding: '10px',
-                  marginTop: '-130px',
+                  marginTop: '-140px',
                   marginLeft: '-150px',
                   marginBottom: '10px',
                   fontSize: '11px',
@@ -3682,13 +4069,13 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                   setOffsetY(-81)
                   setScale(1)
                   setRotation(0)
-                  setMonkeyOffsetX(-30)
-                  setMonkeyOffsetY(-26)
-                  setMonkeyScale(1.2)
+                  setMonkeyOffsetX(74)
+                  setMonkeyOffsetY(-6)
+                  setMonkeyScale(1)
                   setMonkeyRotation(0)
                   setBowOffsetX(0)
                   setBowOffsetY(-15)
-                  setBowScale(0.2)
+                  setBowScale(0.18)
                   setBowRotation(35)
                 }}
                 style={{
@@ -4534,7 +4921,8 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
                     backgroundColor: '#c0c0c0',
                     border: '2px solid',
                     borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: '#000080'
                   }}
                 >
                   Clear Trash
@@ -5657,7 +6045,10 @@ const [downloadsPos, setDownloadsPos] = useState({ x: 48, y: 485 })
           >
             <h1 style={{ margin: '2px 4px', fontSize: '14px', fontWeight: 'bold' }}>Gallery ⋆｡°✩</h1>
             <button 
-              onClick={() => setShowGallery(false)}
+              onClick={() => {
+                playClickSound()
+                setShowGallery(false)
+              }}
               style={{
                 marginLeft: 'auto',
                 padding: '2px 6px',
